@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^4.0.66",
+    "@ai-sdk/google": "^4.0.69",
     "ai": "^7.0.99",
     "next": "16.3.5",
     "pdf-parse": "^2.4.5",
