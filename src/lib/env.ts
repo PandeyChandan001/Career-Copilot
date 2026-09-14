@@ -3,6 +3,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1, 'GOOGLE_GENERATIVE_AI_API_KEY is required'),
+  DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
 });
 
 const _env = envSchema.safeParse(process.env);

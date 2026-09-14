@@ -7,10 +7,12 @@ import { SkillGapList } from '@/components/dashboard/SkillGapList';
 import { PreparationRoadmap } from '@/components/dashboard/PreparationRoadmap';
 import { InterviewQuestionBank } from '@/components/dashboard/InterviewQuestionBank';
 import { TailorResumeCTA } from '@/components/dashboard/TailorResumeCTA';
+import { HistoryDrawer } from '@/components/dashboard/HistoryDrawer';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Clock } from 'lucide-react';
 
 export default function DashboardPage() {
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [resumeText, setResumeText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,12 +50,27 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-extrabold tracking-tight">Career Copilot</h1>
             <p className="text-sm text-gray-500 font-medium mt-1">ATS Gap Analysis & Tailored Resumes</p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Systems Operational
+          <div className="flex items-center gap-4">
+            <button onClick={() => setHistoryOpen(true)} className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              <Clock size={16} /> History
+            </button>
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Systems Operational
+            </div>
           </div>
         </div>
       </header>
+      <HistoryDrawer 
+        isOpen={historyOpen} 
+        onClose={() => setHistoryOpen(false)} 
+        onRestore={(rt, jd, result) => {
+          setResumeText(rt);
+          setJobDescription(jd);
+          setAnalysis(result);
+          setError('');
+        }} 
+      />
 
       <div className="max-w-6xl mx-auto mt-8 px-4 md:px-8 space-y-8">
         {error && (

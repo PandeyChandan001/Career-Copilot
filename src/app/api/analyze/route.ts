@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateGapAnalysis } from '@/services/aiService';
+import { saveAnalysisRecord } from '@/services/historyService';
 import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
 
@@ -18,6 +19,9 @@ export async function POST(request: Request) {
 
     const { resumeText, jobDescription } = validationResult.data;
     const result = await generateGapAnalysis(resumeText, jobDescription);
+
+    // Asynchronously save to history
+    saveAnalysisRecord({ resumeText, jobDescription, result }).catch(console.error);
 
     return NextResponse.json(
       { success: true, data: result },
