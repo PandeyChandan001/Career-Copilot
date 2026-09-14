@@ -3,8 +3,12 @@ import { generateGapAnalysis } from '@/services/aiService';
 import { saveAnalysisRecord } from '@/services/historyService';
 import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
+import { applyRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
+  const rateLimitResponse = applyRateLimit(request);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await request.json();
     const validationResult = AnalysisRequestSchema.safeParse(body);
