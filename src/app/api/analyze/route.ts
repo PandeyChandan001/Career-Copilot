@@ -4,6 +4,7 @@ import { saveAnalysisRecord } from '@/services/historyService';
 import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
 import { applyRateLimit } from '@/lib/rateLimit';
+import { auth, currentUser } from '@clerk/nextjs/server';
 
 export async function POST(request: Request) {
   const rateLimitResponse = applyRateLimit(request);
@@ -24,8 +25,15 @@ export async function POST(request: Request) {
     const { resumeText, jobDescription } = validationResult.data;
     const result = await generateGapAnalysis(resumeText, jobDescription);
 
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const user = await currentUser();
+    const userEmail = user?.primaryEmailAddress?.emailAddress || undefined;
+
     // Asynchronously save to history
-    saveAnalysisRecord({ resumeText, jobDescription, result }).catch(console.error);
+    saveAnalysisRecord({ userId, userEmail, resumeText, jobDescription, result }).catch(console.error);
 
     return NextResponse.json(
       { success: true, data: result },

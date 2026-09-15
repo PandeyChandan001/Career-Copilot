@@ -2,10 +2,18 @@ import { prisma } from '../lib/prisma';
 import { PrepAnalysisResult } from '../schemas/analysisSchema';
 import { AppError } from '../lib/errors/AppError';
 
-export async function saveAnalysisRecord(data: { resumeText: string; jobDescription: string; result: PrepAnalysisResult }) {
+export async function saveAnalysisRecord(data: { userId: string; userEmail?: string; resumeText: string; jobDescription: string; result: PrepAnalysisResult }) {
   try {
+    // Upsert User to guarantee relation integrity
+    await prisma.user.upsert({
+      where: { id: data.userId },
+      update: { email: data.userEmail },
+      create: { id: data.userId, email: data.userEmail },
+    });
+
     return await prisma.analysisRecord.create({
       data: {
+        userId: data.userId,
         rawResumeText: data.resumeText,
         jobDescription: data.jobDescription,
         matchScore: data.result.matchScore,
@@ -19,9 +27,10 @@ export async function saveAnalysisRecord(data: { resumeText: string; jobDescript
   }
 }
 
-export async function getRecentAnalyses(limit: number = 10) {
+export async function getUserAnalyses(userId: string, limit: number = 10) {
   try {
     return await prisma.analysisRecord.findMany({
+      where: { userId },
       take: limit,
       orderBy: { createdAt: 'desc' },
     });
@@ -31,9 +40,12 @@ export async function getRecentAnalyses(limit: number = 10) {
   }
 }
 
-export async function getAnalysisById(id: string) {
+export async function getUserAnalysisById(id: string, userId: string) {
   try {
-    return await prisma.analysisRecord.findUnique({ where: { id } });
+    // Use findFirst since findUnique doesn't support multiple non-unique where clauses without a compound unique index
+    return await prisma.analysisRecord.findFirst({
+      where: { id, userId },
+    });
   } catch (error) {
     console.error('[FETCH_ANALYSIS_ERROR]', error);
     throw new AppError('Failed to fetch specific analysis.', 500);

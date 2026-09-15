@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  analyses  AnalysisRecord[]
+}
+
 model AnalysisRecord {
   id             String   @id @default(cuid())
   createdAt      DateTime @default(now())
@@ -17,4 +25,9 @@ model AnalysisRecord {
   rawResumeText  String   @db.Text
   jobDescription String   @db.Text
   analysisPayload Json
+
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
