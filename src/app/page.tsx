@@ -9,7 +9,7 @@ import { SkillGapList } from '@/components/dashboard/SkillGapList';
 import { PreparationRoadmap } from '@/components/dashboard/PreparationRoadmap';
 import { InterviewQuestionBank } from '@/components/dashboard/InterviewQuestionBank';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
+import { Show, SignInButton, UserButton } from '@clerk/nextjs';
 import { Loader2, AlertCircle, Clock, Activity } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -57,26 +57,26 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold tracking-tight text-white">Career Copilot</h1>
           </div>
           <div className="flex items-center gap-6">
-            <SignedIn>
+            <Show when="signed-in">
               <button onClick={() => setHistoryOpen(true)} className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors ease-smooth active:scale-95">
                 <Clock size={15} /> History
               </button>
-            </SignedIn>
+            </Show>
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 tracking-wide">
               <Activity size={14} className="animate-pulse" />
               Live
             </div>
             <div className="h-4 w-px bg-white/10 hidden md:block"></div>
-            <SignedIn>
+            <Show when="signed-in">
               <UserButton appearance={{ elements: { userButtonAvatarBox: 'w-8 h-8' } }} />
-            </SignedIn>
-            <SignedOut>
+            </Show>
+            <Show when="signed-out">
               <SignInButton mode="modal">
                 <button className="text-sm font-bold bg-white text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors shadow-inset-top ease-smooth active:scale-95">
                   Sign In
                 </button>
               </SignInButton>
-            </SignedOut>
+            </Show>
           </div>
         </div>
       </header>
