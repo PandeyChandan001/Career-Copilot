@@ -3,18 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
-    "@ai-sdk/google": "^4.0.69",
+    "@ai-sdk/google": "^4.0.75",
+    "@ai-sdk/openai": "^4.0.70",
     "@clerk/nextjs": "^7.9.3",
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.9.0",
-    "ai": "^7.0.99",
+    "ai": "^7.0.106",
     "lucide-react": "^1.45.0",
     "next": "16.3.5",
     "pdf-parse": "^2.4.5",
