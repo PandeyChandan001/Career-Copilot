@@ -290,35 +290,40 @@ export default function DashboardPage() {
               {/* 5. Preparation Roadmap */}
               {Array.isArray((analysis as any)?.preparationPlan) && (
                 <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                    <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
-                      Tailored Preparation Roadmap
-                    </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
+                      <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
+                        Tailored Remediation Roadmap
+                      </h3>
+                    </div>
+                    <span className="text-xs text-zinc-500 font-mono">3-Week Sprint</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {(analysis as any).preparationPlan.map((plan: any, idx: number) => (
-                      <div key={idx} className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-3">
-                        <div className="text-xs font-bold text-cyan-400 uppercase tracking-wide">
-                          {plan.phase || `Phase ${idx + 1}`}
-                        </div>
-                        <div>
-                          <div className="text-[11px] uppercase font-semibold text-zinc-400 mb-1">Focus Areas</div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(plan.focusAreas || []).map((area: string, aIdx: number) => (
-                              <span key={aIdx} className="px-2 py-0.5 bg-zinc-800 text-zinc-300 rounded text-xs">
-                                {area}
-                              </span>
-                            ))}
+                      <div key={idx} className="p-4 bg-zinc-950/70 border border-zinc-800 rounded-xl space-y-3 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="text-xs font-bold text-cyan-400 uppercase tracking-wide">
+                            {plan.phase || `Sprint ${idx + 1}`}
+                          </div>
+                          <div>
+                            <div className="text-[10px] uppercase font-semibold text-zinc-400 mb-1">Focus Areas</div>
+                            <div className="flex flex-wrap gap-1">
+                              {(plan.focusAreas || []).map((area: string, aIdx: number) => (
+                                <span key={aIdx} className="px-2 py-0.5 bg-zinc-800/80 border border-zinc-700/50 text-zinc-300 rounded text-xs">
+                                  {area}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                         <div>
-                          <div className="text-[11px] uppercase font-semibold text-zinc-400 mb-1">Action Items</div>
+                          <div className="text-[10px] uppercase font-semibold text-zinc-400 mb-1">Action Items</div>
                           <ul className="space-y-1">
-                            {(plan.actionItems || []).map((action: string, actIdx: number) => (
-                              <li key={actIdx} className="text-xs text-zinc-400 flex items-start gap-1.5">
-                                <span className="text-zinc-500">•</span>
-                                <span>{action}</span>
+                            {(plan.actionItems || []).map((item: string, iIdx: number) => (
+                              <li key={iIdx} className="text-xs text-zinc-400 flex items-start gap-1.5">
+                                <span className="text-cyan-500 font-bold">•</span>
+                                <span>{item}</span>
                               </li>
                             ))}
                           </ul>
@@ -371,14 +376,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-
-              {/* 7. Raw Inspection Toggle (Guaranteed Visible Fallback) */}
-              <details className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl mt-12 opacity-50 hover:opacity-100 transition-opacity">
-                <summary className="text-xs text-zinc-500 cursor-pointer font-mono">View Raw AI Payload JSON</summary>
-                <pre className="mt-3 p-4 bg-black/60 rounded text-xs text-emerald-400 overflow-x-auto font-mono">
-                  {JSON.stringify(analysis, null, 2)}
-                </pre>
-              </details>
             </div>
           </div>
         );
