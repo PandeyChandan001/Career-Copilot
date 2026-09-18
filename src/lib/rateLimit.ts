@@ -18,6 +18,10 @@ if (typeof setInterval !== 'undefined') {
 }
 
 export function applyRateLimit(request: Request, limit = 5, windowMs = 10 * 60 * 1000) {
+  if (process.env.NODE_ENV === 'development') {
+    return null; // Bypass rate limiting for local dev
+  }
+
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   
   const now = Date.now();

@@ -82,7 +82,7 @@ export function ResumeEditorModal({ isOpen, initialData, onClose, onExport, isEx
                 <textarea
                   className="w-full p-3 bg-transparent border-none focus:outline-none text-slate-300 text-sm resize-none"
                   rows={2}
-                  value={data.skills.join(', ')}
+                  value={(data.skills ?? []).join(', ')}
                   onChange={e => setData({...data, skills: e.target.value.split(',').map(s => s.trim())})}
                   placeholder="React, TypeScript, Node.js"
                 />
@@ -93,7 +93,7 @@ export function ResumeEditorModal({ isOpen, initialData, onClose, onExport, isEx
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
                 Work Experience
               </h3>
-              {data.experience.map((exp, expIdx) => (
+              {(data.experience ?? []).map((exp, expIdx) => (
                 <div key={expIdx} className="bg-black/20 p-5 md:p-6 rounded-2xl border border-white/10 shadow-inset-top space-y-5 group">
                   <div className="flex flex-col md:flex-row gap-4">
                     <input className="flex-1 p-3 bg-white/5 border border-white/10 rounded-lg text-sm font-bold text-slate-200 focus:ring-1 focus:ring-emerald-500 focus:outline-none shadow-inset-top" value={exp.role} onChange={e => {
@@ -109,7 +109,7 @@ export function ResumeEditorModal({ isOpen, initialData, onClose, onExport, isEx
                   </div>
                   
                   <div className="space-y-3 relative before:absolute before:inset-y-0 before:left-[11px] before:w-px before:bg-white/10">
-                    {exp.bulletPoints.map((bullet, bulletIdx) => (
+                    {(exp.bulletPoints ?? []).map((bullet, bulletIdx) => (
                       <div key={bulletIdx} className="flex gap-3 relative z-10">
                         <div className="w-6 h-6 rounded-full bg-slate-900 border border-white/10 shrink-0 flex items-center justify-center mt-2.5">
                           <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
@@ -171,20 +171,20 @@ export function ResumeEditorModal({ isOpen, initialData, onClose, onExport, isEx
 
               <div>
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Technical Skills</h2>
-                <p className="text-sm leading-relaxed">{data.skills.join(', ')}</p>
+                <p className="text-sm leading-relaxed">{(data.skills ?? []).join(', ')}</p>
               </div>
 
               <div>
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 border-b pb-1">Experience</h2>
                 <div className="space-y-4">
-                  {data.experience.map((exp, idx) => (
+                  {(data.experience ?? []).map((exp, idx) => (
                     <div key={idx}>
                       <div className="flex justify-between items-baseline mb-2">
                         <h3 className="font-bold text-sm">{exp.role}</h3>
                         <span className="text-sm font-semibold text-slate-600">{exp.company}</span>
                       </div>
                       <ul className="list-disc list-outside ml-4 space-y-1">
-                        {exp.bulletPoints.map((b, i) => (
+                        {(exp.bulletPoints ?? []).map((b, i) => (
                           <li key={i} className="text-sm leading-relaxed pl-1">{b}</li>
                         ))}
                       </ul>

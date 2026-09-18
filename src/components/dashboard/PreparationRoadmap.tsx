@@ -12,7 +12,7 @@ export function PreparationRoadmap({ plan }: Props) {
 
   return (
     <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[1.15rem] before:-translate-x-px md:before:ml-6 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-emerald-500/0 before:via-emerald-500/20 before:to-transparent pt-4">
-      {plan.map((phase, idx) => {
+      {(plan ?? []).map((phase, idx) => {
         const isExpanded = expanded === idx;
         return (
           <div key={idx} className="relative flex items-start gap-4 md:gap-6 group">
@@ -37,14 +37,14 @@ export function PreparationRoadmap({ plan }: Props) {
               <div className={`grid transition-all duration-500 ease-spring ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-5' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden space-y-5">
                   <div className="flex flex-wrap gap-2">
-                    {phase.focusAreas.map((area, aIdx) => (
+                    {(phase.focusAreas ?? []).map((area, aIdx) => (
                       <span key={aIdx} className="px-3 py-1 rounded-full bg-white/5 text-slate-300 text-xs font-semibold border border-white/10 tracking-wide">
                         {area}
                       </span>
                     ))}
                   </div>
                   <ul className="space-y-3">
-                    {phase.actionItems.map((item, iIdx) => (
+                    {(phase.actionItems ?? []).map((item, iIdx) => (
                       <li key={iIdx} className="flex items-start gap-3 text-sm text-slate-400">
                         <Target size={16} className="text-emerald-500/50 mt-0.5 shrink-0" />
                         <span className="leading-relaxed">{item}</span>

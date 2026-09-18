@@ -70,7 +70,7 @@ export function HistoryDrawer({ isOpen, onClose, onRestore }: Props) {
           ) : records.length === 0 ? (
             <p className="text-sm text-gray-500 text-center mt-4">No history found.</p>
           ) : (
-            records.map(rec => (
+            (records ?? []).map(rec => (
               <div key={rec.id} className="border rounded-lg p-3 hover:border-blue-300 cursor-pointer transition-colors" onClick={() => handleRestore(rec.id)}>
                 <div className="flex justify-between items-start mb-2">
                   <div className="text-xs text-gray-500">{new Date(rec.createdAt).toLocaleDateString()}</div>

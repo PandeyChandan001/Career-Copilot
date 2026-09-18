@@ -6,7 +6,7 @@ interface Props {
 }
 
 export function SkillGapList({ gaps }: Props) {
-  if (!gaps.length) return <p className="text-sm text-gray-500">No major skill gaps identified.</p>;
+  if (!gaps || !gaps.length) return <p className="text-sm text-gray-500">No major skill gaps identified.</p>;
 
   const getImpColor = (imp: string) => {
     if (imp === 'critical') return 'bg-red-100 text-red-700';
@@ -16,7 +16,7 @@ export function SkillGapList({ gaps }: Props) {
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      {gaps.map((gap, i) => (
+      {(gaps ?? []).map((gap, i) => (
         <div key={i} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow transition-shadow">
           <div className="flex justify-between items-start mb-2 gap-2">
             <h4 className="font-semibold text-gray-900 break-words">{gap.skill}</h4>

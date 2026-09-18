@@ -1,25 +1,28 @@
-import pdf from 'pdf-parse';
 import { AppError } from '../lib/errors/AppError';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PDFParser = require('pdf2json');
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  try {
-    const data = await pdf(buffer);
-    let text = data.text;
+  return new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser(null, true); // true = raw text only
 
-    text = text.replace(/\r\n/g, '\n');
-    text = text.replace(/[ \t]+/g, ' ');
-    text = text.replace(/\n{3,}/g, '\n\n');
-    text = text.trim();
+    pdfParser.on('pdfParser_dataError', (errData: any) => {
+      reject(new AppError(`Failed to parse PDF document: ${errData.parserError || errData}`, 500));
+    });
 
-    if (text.length < 50) {
-      throw new AppError('The uploaded PDF contains no readable text or is scanned/corrupted.', 400);
-    }
+    pdfParser.on('pdfParser_dataReady', () => {
+      try {
+        const rawText = pdfParser.getRawTextContent();
+        const trimmed = decodeURIComponent(rawText).trim();
+        if (!trimmed) {
+          return reject(new AppError('The uploaded PDF appears empty or contains scanned images without selectable text', 422));
+        }
+        resolve(trimmed);
+      } catch (err: any) {
+        reject(new AppError(`Text decoding error: ${err.message}`, 500));
+      }
+    });
 
-    return text;
-  } catch (error) {
-    if (error instanceof AppError) {
-      throw error;
-    }
-    throw new AppError('Failed to parse PDF document.', 500);
-  }
+    pdfParser.parseBuffer(buffer);
+  });
 }

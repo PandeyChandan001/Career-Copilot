@@ -5,6 +5,10 @@ import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
 import { applyRateLimit } from '@/lib/rateLimit';
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
+
+export const maxDuration = 60; // 60 seconds timeout
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   const rateLimitResponse = applyRateLimit(request);
@@ -32,6 +36,15 @@ export async function POST(request: Request) {
     const user = await currentUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress || undefined;
 
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: {
+        id: userId,
+        email: `user_${userId}@app.internal`,
+      },
+    });
+
     // Asynchronously save to history
     saveAnalysisRecord({ userId, userEmail, resumeText, jobDescription, result }).catch(console.error);
 
@@ -39,18 +52,15 @@ export async function POST(request: Request) {
       { success: true, data: result },
       { status: 200 }
     );
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: error.statusCode }
-      );
-    }
+  } catch (error: any) {
+    console.error("ANALYSIS_ROUTE_CRASH:", error);
 
-    console.error('[ANALYZE_ROUTE_ERROR]', error);
+    const message = error?.message || "Internal Analysis Error";
+    const status = error?.status || error?.statusCode || 500;
+    
     return NextResponse.json(
-      { success: false, error: 'An unexpected error occurred during analysis.' },
-      { status: 500 }
+      { success: false, error: message, raw: String(error) }, 
+      { status }
     );
   }
 }

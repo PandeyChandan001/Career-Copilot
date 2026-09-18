@@ -6,22 +6,23 @@ import { parseFileSchema } from '@/schemas/parseSchema';
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file');
+    const file = formData.get('file') as File;
+    if (!file || typeof file.arrayBuffer !== 'function') {
+      return NextResponse.json({ success: false, error: 'Invalid file upload.' }, { status: 400 });
+    }
 
     const validationResult = parseFileSchema.safeParse({ file });
 
     if (!validationResult.success) {
-      const errorMessage = validationResult.error.errors.map(e => e.message).join(', ');
+      const errorMessage = validationResult.error?.errors?.map(e => e.message).join(', ') || 'Invalid file structure';
       return NextResponse.json(
         { success: false, error: errorMessage },
         { status: 400 }
       );
     }
 
-    const validFile = validationResult.data.file;
-    const arrayBuffer = await validFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
     const rawText = await extractTextFromPDF(buffer);
 
     return NextResponse.json(

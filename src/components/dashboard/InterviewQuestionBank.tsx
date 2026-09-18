@@ -18,7 +18,7 @@ export function InterviewQuestionBank({ questions }: Props) {
     { id: 'strategic', label: 'Strategic' },
   ] as const;
 
-  const filteredQuestions = questions.filter(q => q.category === activeTab);
+  const filteredQuestions = (questions ?? []).filter(q => q.category === activeTab);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
