@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const validationResult = AnalysisRequestSchema.safeParse(body);
 
     if (!validationResult.success) {
-      const errorMessage = validationResult.error.errors.map(e => e.message).join(', ');
+      const errorMessage = (validationResult.error?.errors ?? []).map(e => e.message).join(', ') || 'Validation error';
       return NextResponse.json(
         { success: false, error: errorMessage },
         { status: 400 }

@@ -16,17 +16,34 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const validationResult = AnalysisRequestSchema.safeParse(body);
+    console.log("[INCOMING_ANALYZE_BODY]:", Object.keys(body)); // Don't log full text to avoid spam
 
-    if (!validationResult.success) {
-      const errorMessage = validationResult.error.errors.map(e => e.message).join(', ');
+    const resumeText = (
+      body.resumeText ||
+      body.resume ||
+      body.text ||
+      body.extractedText ||
+      ""
+    ).trim();
+
+    const jobDescription = (
+      body.jobDescription ||
+      body.jd ||
+      body.description ||
+      body.jobDesc ||
+      ""
+    ).trim();
+
+    if (!resumeText || !jobDescription) {
+      console.error("[PAYLOAD_REJECTED]:", { 
+        hasResume: Boolean(resumeText), 
+        hasJD: Boolean(jobDescription) 
+      });
       return NextResponse.json(
-        { success: false, error: errorMessage },
+        { success: false, error: "Invalid payload: Please make sure both resume text and job description are provided." },
         { status: 400 }
       );
     }
-
-    const { resumeText, jobDescription } = validationResult.data;
     const result = await generateGapAnalysis(resumeText, jobDescription);
 
     const { userId } = await auth();
@@ -36,31 +53,42 @@ export async function POST(request: Request) {
     const user = await currentUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress || undefined;
 
-    await prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: {
-        id: userId,
-        email: `user_${userId}@app.internal`,
-      },
-    });
+    let savedRecord = null;
+    try {
+      await prisma.user.upsert({
+        where: { id: userId },
+        update: {},
+        create: {
+          id: userId,
+          email: userEmail || `user_${userId}@app.internal`,
+        },
+      });
 
-    // Asynchronously save to history
-    saveAnalysisRecord({ userId, userEmail, resumeText, jobDescription, result }).catch(console.error);
+      savedRecord = await prisma.analysis.create({
+        data: {
+          userId: userId,
+          resumeText,
+          jobDescription,
+          matchScore: result.matchScore,
+          analysis: JSON.stringify(result),
+        },
+      });
+    } catch (dbError: any) {
+      console.warn("[DB_SAVE_WARNING]: Could not persist to DB, returning analysis anyway:", dbError.message);
+    }
+
+    // Always return the generated analysis to the frontend
+    return NextResponse.json({
+      success: true,
+      analysis: result,
+      id: savedRecord?.id || null,
+    }, { status: 200 });
+  } catch (err: any) {
+    console.error("[API_ROUTE_CRASH]:", err);
 
     return NextResponse.json(
-      { success: true, data: result },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("ANALYSIS_ROUTE_CRASH:", error);
-
-    const message = error?.message || "Internal Analysis Error";
-    const status = error?.status || error?.statusCode || 500;
-    
-    return NextResponse.json(
-      { success: false, error: message, raw: String(error) }, 
-      { status }
+      { success: false, error: err?.message || "Internal server error" }, 
+      { status: 500 }
     );
   }
 }
