@@ -79,12 +79,12 @@ export const ATSResumeDocument = ({ resumeData }: { resumeData: TailoredResumeDa
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>TECHNICAL SKILLS</Text>
-          <Text>{resumeData.skills.join(', ')}</Text>
+          <Text>{(resumeData.skills ?? []).join(', ')}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>PROFESSIONAL EXPERIENCE</Text>
-          {resumeData.experience.map((exp, i) => (
+          {(resumeData.experience ?? []).map((exp, i) => (
             <View key={i} style={{ marginBottom: 8 }}>
               <View style={styles.experienceHeader}>
                 <Text style={styles.role}>{exp.role}</Text>
@@ -93,7 +93,7 @@ export const ATSResumeDocument = ({ resumeData }: { resumeData: TailoredResumeDa
               <View style={styles.experienceHeader}>
                 <Text style={styles.companyText}>{exp.company}, {exp.location}</Text>
               </View>
-              {exp.bulletPoints.map((bp, j) => (
+              {(exp.bulletPoints ?? []).map((bp, j) => (
                 <View key={j} style={styles.bullet}>
                   <Text style={styles.bulletPoint}>•</Text>
                   <Text style={styles.bulletContent}>{bp}</Text>
@@ -106,13 +106,13 @@ export const ATSResumeDocument = ({ resumeData }: { resumeData: TailoredResumeDa
         {resumeData.projects && resumeData.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>PROJECTS</Text>
-            {resumeData.projects.map((proj, i) => (
+            {(resumeData.projects ?? []).map((proj, i) => (
               <View key={i} style={{ marginBottom: 6 }}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.role}>{proj.name}</Text>
                   <Text>{proj.technologies}</Text>
                 </View>
-                {proj.bulletPoints.map((bp, j) => (
+                {(proj.bulletPoints ?? []).map((bp, j) => (
                   <View key={j} style={styles.bullet}>
                     <Text style={styles.bulletPoint}>•</Text>
                     <Text style={styles.bulletContent}>{bp}</Text>
@@ -125,14 +125,14 @@ export const ATSResumeDocument = ({ resumeData }: { resumeData: TailoredResumeDa
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>EDUCATION</Text>
-          {resumeData.education.map((edu, i) => (
+          {(resumeData.education ?? []).map((edu, i) => (
             <View key={i} style={{ marginBottom: 6 }}>
               <View style={styles.experienceHeader}>
                 <Text style={styles.role}>{edu.institution}</Text>
                 <Text>{edu.year}</Text>
               </View>
               <Text>{edu.degree}</Text>
-              {edu.highlights?.map((h, j) => (
+              {(edu.highlights ?? []).map((h, j) => (
                 <View key={j} style={styles.bullet}>
                   <Text style={styles.bulletPoint}>•</Text>
                   <Text style={styles.bulletContent}>{h}</Text>

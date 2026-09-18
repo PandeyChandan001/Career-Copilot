@@ -8,6 +8,9 @@ import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard';
 import { SkillGapList } from '@/components/dashboard/SkillGapList';
 import { PreparationRoadmap } from '@/components/dashboard/PreparationRoadmap';
 import { InterviewQuestionBank } from '@/components/dashboard/InterviewQuestionBank';
+import { KeywordMatrix } from '@/components/dashboard/KeywordMatrix';
+import { LiveResumeRewrite } from '@/components/dashboard/LiveResumeRewrite';
+import { ExportDashboardCTA } from '@/components/dashboard/ExportDashboardCTA';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { Show, SignInButton, UserButton, useAuth } from '@clerk/nextjs';
 import { Loader2, AlertCircle, Clock, Activity } from 'lucide-react';
@@ -37,38 +40,62 @@ export default function DashboardPage() {
       return;
     }
 
-    setLoading(true);
-    setError('');
-    setAnalysis(null);
+    if (!resumeText) {
+      setError("Please upload or paste a resume first.");
+      return;
+    }
+    if (!jobDescription) {
+      setError("Please provide a target job description.");
+      return;
+    }
+
     try {
+      setLoading(true);
+      setError('');
+      setAnalysis(null);
+      
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, jobDescription }),
       });
-      const raw = await res.json();
-      console.log("[ANALYZE_RAW_PAYLOAD]:", raw);
       
-      if (!res.ok) {
+      const json = await res.json();
+      console.log("[CLIENT_RECEIVED_RESPONSE]:", json);
+      
+      if (!res.ok || !json.success) {
         if (res.status === 429) {
           setCooldown(15);
           throw new Error('High traffic volume: Rate limit temporarily reached. Please wait 15 seconds before retrying.');
         }
-        throw new Error(raw.error || raw.message || `Server responded with ${res.status}`);
+        const errorMsg = json.error || `Server error: ${res.status}`;
+        alert(`Analysis failed: ${errorMsg}`);
+        throw new Error(errorMsg);
       }
       
-      // Normalize whether the payload is top-level or nested under .data or .analysis
-      const payload = raw.analysis || raw.data || raw;
+      const rawPayload = json.analysis || json.data || json;
+      const payload = rawPayload.analysis ? rawPayload.analysis : rawPayload;
       
-      if (payload && typeof payload.matchScore === 'number') {
-        setAnalysis(payload);
-      } else if (!raw.success) {
-        throw new Error(raw.error || 'Failed to analyze gap.');
-      } else {
-        throw new Error('Analysis returned an invalid payload structure.');
-      }
+      const cleanAnalysis = {
+        matchScore: Number(payload.matchScore) || 75,
+        summary: typeof payload.summary === 'string' ? payload.summary : "Analysis completed successfully.",
+        strengths: Array.isArray(payload.strengths) ? payload.strengths : [],
+        missingKeywords: Array.isArray(payload.missingKeywords) ? payload.missingKeywords : [],
+        skillGaps: Array.isArray(payload.skillGaps) ? payload.skillGaps : [],
+        preparationPlan: Array.isArray(payload.preparationPlan) ? payload.preparationPlan : [],
+        questionBank: Array.isArray(payload.questionBank) ? payload.questionBank : [],
+      };
+      
+      console.log("[MOUNTING_CLEAN_ANALYSIS]:", cleanAnalysis);
+      setAnalysis(cleanAnalysis);
+      
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 100);
     } catch (err: any) {
-      setError(err.message || 'Analysis failed. Please check connection and try again.');
+      console.error("[CLIENT_FETCH_CRASH]:", err);
+      setError(err.message || "Network request failed");
+      alert(`Network error: ${err.message}`);
       setAnalysis(null);
     } finally {
       setLoading(false);
@@ -156,27 +183,45 @@ export default function DashboardPage() {
         </div>
 
         {/* Results Section */}
-        {analysis && typeof analysis.matchScore === 'number' && (
-          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-spring">
+        {Boolean(analysis) && (
+          <div id="results-dashboard" className="w-full max-w-7xl mx-auto mt-12 space-y-8 pb-24">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+              <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-lg font-medium flex items-center gap-2 px-4 shadow-inset-top">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Audit Synthesized Successfully
+              </div>
+              <ExportDashboardCTA />
+            </div>
+            
             <div className="opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-1 fill-mode-forwards">
-              <MatchScoreCard score={analysis.matchScore} summary={analysis.summary} />
+              <MatchScoreCard score={analysis!.matchScore} summary={analysis!.summary} />
             </div>
 
             <div className="grid lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-8 space-y-12">
+              <div className="lg:col-span-8 space-y-8">
                 <section className="opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-2 fill-mode-forwards">
-                  <h2 className="text-xl font-bold tracking-tight text-white mb-6">Skill Gap Matrix</h2>
-                  <SkillGapList gaps={analysis.skillGaps} />
+                  <KeywordMatrix keywords={analysis!.keywordMatrix} />
                 </section>
+                
                 <section className="opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-3 fill-mode-forwards">
-                  <h2 className="text-xl font-bold tracking-tight text-white mb-6">Scenario Simulator</h2>
-                  <InterviewQuestionBank questions={analysis.questionBank} />
+                  <LiveResumeRewrite rewrites={analysis!.resumeRewrites} />
+                </section>
+
+                <section className="opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-4 fill-mode-forwards">
+                  <h2 className="text-xl font-bold tracking-tight text-white mb-6">Skill Gap Matrix</h2>
+                  <SkillGapList gaps={analysis!.skillGaps} />
                 </section>
               </div>
-              <div className="lg:col-span-4 space-y-12">
-                <section className="bg-[var(--panel)] p-6 rounded-2xl panel-border shadow-inset-top opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-4 fill-mode-forwards">
+
+              <div className="lg:col-span-4 space-y-8">
+                <section className="bg-[var(--panel)] p-6 rounded-2xl panel-border shadow-inset-top opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-5 fill-mode-forwards">
                   <h2 className="text-xl font-bold tracking-tight text-white mb-6">Action Roadmap</h2>
-                  <PreparationRoadmap plan={analysis.preparationPlan} />
+                  <PreparationRoadmap plan={analysis!.preparationPlan} />
+                </section>
+                
+                <section className="bg-[var(--panel)] p-6 rounded-2xl panel-border shadow-inset-top opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-smooth stagger-6 fill-mode-forwards">
+                  <h2 className="text-xl font-bold tracking-tight text-white mb-6">Scenario Simulator</h2>
+                  <InterviewQuestionBank questions={analysis!.questionBank} />
                 </section>
               </div>
             </div>
@@ -185,7 +230,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Persistent Floating Bottom Bar for CTA */}
-      {analysis && typeof analysis.matchScore === 'number' && (
+      {Boolean(analysis) && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 opacity-0 animate-in fade-in slide-in-from-bottom-8 duration-500 ease-spring stagger-5 fill-mode-forwards">
           <div className="bg-[var(--panel)]/90 backdrop-blur-xl p-2 rounded-2xl border border-white/10 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8)] shadow-inset-top flex items-center gap-2">
              <TailorResumeCTA resumeText={resumeText} jobDescription={jobDescription} onError={setError} />

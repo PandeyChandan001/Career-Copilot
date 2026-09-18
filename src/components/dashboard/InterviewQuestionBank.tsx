@@ -98,6 +98,15 @@ export function InterviewQuestionBank({ questions }: Props) {
                         <p className="text-sm text-slate-300 leading-relaxed">{q.recommendedApproach}</p>
                       </div>
                     </div>
+                    {q.sampleAnswer && (
+                      <div className="flex items-start gap-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mt-4">
+                        <MessageSquareQuote size={18} className="text-emerald-400 mt-0.5 shrink-0" />
+                        <div>
+                          <h5 className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-1.5">High-Scoring Sample Answer</h5>
+                          <p className="text-sm text-slate-200 leading-relaxed italic">"{q.sampleAnswer}"</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
