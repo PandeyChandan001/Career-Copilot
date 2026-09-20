@@ -42,3 +42,27 @@ git clone https://github.com/PandeyChandan001/career-copilot.git
 cd career-copilot
 npm install
 ```
+
+### 2. Environment Variables
+Create a `.env.local` file in the root directory:
+```env
+# OpenRouter / DeepSeek
+OPENROUTER_API_KEY="your_openrouter_api_key"
+
+# Database (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:password@your-host.neon.tech/neondb?sslmode=require"
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+```
+
+### 3. Sync Database
+```bash
+npx prisma db push
+```
+
+### 4. Start Development Server
+```bash
+npm run dev
+```
