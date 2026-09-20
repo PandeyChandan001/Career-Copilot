@@ -2,23 +2,41 @@
 import { CheckCircle2, XCircle, Copy } from 'lucide-react';
 import { useState } from 'react';
 
-interface Keyword {
+interface KeywordItem {
   keyword: string;
-  category: string;
-  isRequired: boolean;
-  isMissing: boolean;
+  category?: string;
+  isRequired?: boolean;
+  isMissing?: boolean;
   suggestedBullet?: string;
+  [key: string]: any;
 }
 
-interface Props {
-  keywords: Keyword[];
+interface KeywordMatrixProps {
+  keywords?: KeywordItem[];
+  missingKeywords?: (string | KeywordItem)[];
+  matchedKeywords?: (string | KeywordItem)[];
 }
 
-export function KeywordMatrix({ keywords }: Props) {
+export function KeywordMatrix({ 
+  keywords = [],
+  missingKeywords: missingProp = [],
+  matchedKeywords: matchedProp = [],
+}: KeywordMatrixProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const missingKeywords = keywords.filter(k => k.isMissing);
-  const matchedKeywords = keywords.filter(k => !k.isMissing);
+  const safeKeywords = Array.isArray(keywords) ? keywords : [];
+
+  const missingKeywords: KeywordItem[] = safeKeywords.length > 0
+    ? safeKeywords.filter(k => k?.isMissing)
+    : (Array.isArray(missingProp) ? missingProp : []).map(k => 
+        typeof k === 'string' ? { keyword: k, isMissing: true } : k
+      );
+
+  const matchedKeywords: KeywordItem[] = safeKeywords.length > 0
+    ? safeKeywords.filter(k => !k?.isMissing)
+    : (Array.isArray(matchedProp) ? matchedProp : []).map(k => 
+        typeof k === 'string' ? { keyword: k, isMissing: false } : k
+      );
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -26,7 +44,7 @@ export function KeywordMatrix({ keywords }: Props) {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  if (!keywords || keywords.length === 0) return null;
+  if (missingKeywords.length === 0 && matchedKeywords.length === 0) return null;
 
   return (
     <div className="bg-[var(--panel)] border border-white/5 shadow-inset-top rounded-2xl p-6 md:p-8 space-y-8">
