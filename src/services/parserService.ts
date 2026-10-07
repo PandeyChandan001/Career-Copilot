@@ -12,8 +12,25 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
 
     pdfParser.on('pdfParser_dataReady', () => {
       try {
-        const rawText = pdfParser.getRawTextContent();
-        const trimmed = decodeURIComponent(rawText).trim();
+        const rawText = pdfParser.getRawTextContent() || '';
+        let decoded = '';
+        try {
+          decoded = decodeURIComponent(rawText);
+        } catch {
+          try {
+            decoded = decodeURIComponent(rawText.replace(/%(?![0-9A-Fa-f]{2})/g, '%25'));
+          } catch {
+            decoded = rawText.replace(/(%[0-9A-Fa-f]{2})+/g, (match: string) => {
+              try {
+                return decodeURIComponent(match);
+              } catch {
+                return match;
+              }
+            });
+          }
+        }
+
+        const trimmed = decoded.trim();
         if (!trimmed) {
           return reject(new AppError('The uploaded PDF appears empty or contains scanned images without selectable text', 422));
         }
