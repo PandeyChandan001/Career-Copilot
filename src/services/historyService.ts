@@ -16,7 +16,7 @@ export async function saveAnalysisRecord(data: { userId: string; userEmail?: str
         userId: data.userId,
         rawResumeText: data.resumeText,
         jobDescription: data.jobDescription,
-        matchScore: data.result.matchScore,
+        matchScore: typeof data.result.matchScore === 'number' ? data.result.matchScore : data.result.matchScore.total,
         summary: data.result.summary,
         analysisPayload: data.result as any,
       },

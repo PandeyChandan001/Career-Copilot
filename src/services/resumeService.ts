@@ -30,7 +30,7 @@ export async function generateTailoredResumeData(
 
 export async function renderResumeToStream(resumeData: TailoredResumeData): Promise<NodeJS.ReadableStream> {
   try {
-    return await renderToStream(React.createElement(ATSResumeDocument, { resumeData }));
+    return await renderToStream(React.createElement(ATSResumeDocument, { resumeData }) as any);
   } catch (error) {
     console.error('[PDF_RENDER_ERROR]', error);
     throw new AppError('Failed to render PDF document.', 500);

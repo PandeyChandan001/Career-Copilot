@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState<PrepAnalysisResult | null>(null);
+  const [redactedCounts, setRedactedCounts] = useState<{ emails: number; phones: number; urls: number } | null>(null);
   const { isSignedIn } = useAuth();
 
   const [cooldown, setCooldown] = useState(0);
@@ -53,6 +54,7 @@ export default function DashboardPage() {
       setLoading(true);
       setError('');
       setAnalysis(null);
+      setRedactedCounts(null);
       
       const res = await fetch('/api/analyze', {
         method: 'POST',
@@ -73,15 +75,36 @@ export default function DashboardPage() {
         throw new Error(errorMsg);
       }
       
+      const counts = json.redactedCounts || json.meta?.redactedCounts;
+      if (counts) {
+        setRedactedCounts(counts);
+      }
+      
       const rawPayload = json.analysis || json.data || json;
       const payload = rawPayload.analysis ? rawPayload.analysis : rawPayload;
       
-      const cleanAnalysis = {
-        matchScore: Number(payload.matchScore) || 75,
+      const matchScore = typeof payload.matchScore === 'object' && payload.matchScore !== null
+        ? {
+            total: Number(payload.matchScore.total) || 75,
+            technicalMatch: Number(payload.matchScore.technicalMatch) || 70,
+            experienceRelevance: Number(payload.matchScore.experienceRelevance) || 70,
+            parseabilityScore: Number(payload.matchScore.parseabilityScore) || 90,
+          }
+        : {
+            total: Number(payload.matchScore) || 75,
+            technicalMatch: 70,
+            experienceRelevance: 70,
+            parseabilityScore: 90,
+          };
+
+      const cleanAnalysis: PrepAnalysisResult = {
+        matchScore,
         summary: typeof payload.summary === 'string' ? payload.summary : "Analysis completed successfully.",
         strengths: Array.isArray(payload.strengths) ? payload.strengths : [],
         missingKeywords: Array.isArray(payload.missingKeywords) ? payload.missingKeywords : [],
+        keywordMatrix: Array.isArray(payload.keywordMatrix) ? payload.keywordMatrix : [],
         skillGaps: Array.isArray(payload.skillGaps) ? payload.skillGaps : [],
+        resumeRewrites: Array.isArray(payload.resumeRewrites) ? payload.resumeRewrites : [],
         preparationPlan: Array.isArray(payload.preparationPlan) ? payload.preparationPlan : [],
         questionBank: Array.isArray(payload.questionBank) ? payload.questionBank : [],
       };
@@ -145,6 +168,7 @@ export default function DashboardPage() {
           setResumeText(rt);
           setJobDescription(jd);
           setAnalysis(result);
+          setRedactedCounts(null);
           setError('');
         }} 
       />
@@ -212,9 +236,20 @@ export default function DashboardPage() {
           return (
             <div id="results-dashboard" className="w-full max-w-7xl mx-auto mt-12 space-y-8 pb-24">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-                <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-lg font-medium flex items-center gap-2 px-4 shadow-inset-top">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Audit Synthesized Successfully
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-lg font-medium flex items-center gap-2 px-4 shadow-inset-top">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Audit Synthesized Successfully
+                  </div>
+
+                  {Boolean(redactedCounts) && (
+                    <div className="p-2 bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs rounded-lg font-medium flex items-center gap-2 px-4 shadow-inset-top">
+                      <span>🛡️</span>
+                      <span>
+                        Privacy Guard: {(redactedCounts?.emails ?? 0) + (redactedCounts?.phones ?? 0)} emails and phone numbers scrubbed before LLM processing
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <ExportDashboardCTA />
               </div>

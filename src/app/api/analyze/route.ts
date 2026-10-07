@@ -6,6 +6,7 @@ import { AppError } from '@/lib/errors/AppError';
 import { applyRateLimit } from '@/lib/rateLimit';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { sanitizeResumeText } from '@/lib/sanitizer';
 
 export const maxDuration = 60; // 60 seconds timeout
 export const dynamic = 'force-dynamic';
@@ -44,7 +45,10 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const result = await generateGapAnalysis(resumeText, jobDescription);
+    const { cleanText: sanitizedResumeText, redactedCounts } = sanitizeResumeText(resumeText);
+    console.log("[PII_SANITIZER]: Redacted PII counts:", redactedCounts);
+
+    const result = await generateGapAnalysis(sanitizedResumeText, jobDescription);
 
     const { userId } = await auth();
     if (!userId) {
@@ -55,32 +59,25 @@ export async function POST(request: Request) {
 
     let savedRecord = null;
     try {
-      await prisma.user.upsert({
-        where: { id: userId },
-        update: {},
-        create: {
-          id: userId,
-          email: userEmail || `user_${userId}@app.internal`,
-        },
-      });
-
-      savedRecord = await prisma.analysis.create({
-        data: {
-          userId: userId,
-          resumeText,
-          jobDescription,
-          matchScore: result.matchScore,
-          analysis: JSON.stringify(result),
-        },
+      savedRecord = await saveAnalysisRecord({
+        userId,
+        userEmail,
+        resumeText: sanitizedResumeText,
+        jobDescription,
+        result,
       });
     } catch (dbError: any) {
       console.warn("[DB_SAVE_WARNING]: Could not persist to DB, returning analysis anyway:", dbError.message);
     }
 
-    // Always return the generated analysis to the frontend
+    // Always return the generated analysis to the frontend with PII redaction metadata
     return NextResponse.json({
       success: true,
       analysis: result,
+      meta: {
+        redactedCounts,
+      },
+      redactedCounts,
       id: savedRecord?.id || null,
     }, { status: 200 });
   } catch (err: any) {

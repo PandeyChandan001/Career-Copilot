@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const validationResult = parseFileSchema.safeParse({ file });
 
     if (!validationResult.success) {
-      const errorMessage = validationResult.error?.errors?.map(e => e.message).join(', ') || 'Invalid file structure';
+      const errorMessage = validationResult.error.issues.map((e) => e.message).join(', ') || 'Invalid file structure';
       return NextResponse.json(
         { success: false, error: errorMessage },
         { status: 400 }
