@@ -6,7 +6,7 @@ import { ResumeUploadZone } from '@/components/dashboard/ResumeUploadZone';
 import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard';
 import { ExportDashboardCTA } from '@/components/dashboard/ExportDashboardCTA';
 import { AtsRawStreamModal } from '@/components/dashboard/AtsRawStreamModal';
-import { ArchitecturePipelineTracer } from '@/components/dashboard/ArchitecturePipelineTracer';
+import { AuditProcessRoadmap } from '@/components/dashboard/AuditProcessRoadmap';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { Show, SignInButton, UserButton, useAuth } from '@clerk/nextjs';
 import { Loader2, AlertCircle, Clock, Activity, Terminal, Check } from 'lucide-react';
@@ -279,8 +279,8 @@ export default function DashboardPage() {
             In-memory binary parsing • Deterministic Jaccard keyword coverage • Zero-leakage PII scrubbing.
           </p>
 
-          {/* Live Pipeline Architecture Tracer Component */}
-          <ArchitecturePipelineTracer />
+          {/* Clean Feature Roadmap Strip */}
+          <AuditProcessRoadmap />
         </div>
 
         {/* 2. Rebalanced Ingestion & Target Vector Cards (Full Height Fill) */}
