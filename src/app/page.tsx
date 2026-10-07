@@ -3,13 +3,58 @@ import React, { useState } from 'react';
 import { TailorResumeCTA } from '@/components/dashboard/TailorResumeCTA';
 import { HistoryDrawer } from '@/components/dashboard/HistoryDrawer';
 import { ResumeUploadZone } from '@/components/dashboard/ResumeUploadZone';
-import { JobDescriptionInput } from '@/components/dashboard/JobDescriptionInput';
 import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard';
 import { ExportDashboardCTA } from '@/components/dashboard/ExportDashboardCTA';
 import { AtsRawStreamModal } from '@/components/dashboard/AtsRawStreamModal';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { Show, SignInButton, UserButton, useAuth } from '@clerk/nextjs';
-import { Loader2, AlertCircle, Clock, Activity, Terminal } from 'lucide-react';
+import { Loader2, AlertCircle, Clock, Activity, Terminal, Check } from 'lucide-react';
+
+const SAMPLE_ROLES = [
+  {
+    label: "Senior Full-Stack",
+    text: `Senior Full-Stack Engineer
+
+Requirements:
+- 5+ years of experience with React, TypeScript, Next.js, and Node.js.
+- Strong expertise in RESTful & GraphQL APIs, microservices, and PostgreSQL/Prisma.
+- Experience with Docker, Kubernetes, CI/CD pipelines, and AWS (ECS, S3, CloudFront).
+- Proven track record of performance optimization, state management, and high-traffic systems.
+
+Responsibilities:
+- Architect scalable web applications and lead technical design discussions.
+- Write clean, type-safe, maintainable code with unit and integration tests.
+- Collaborate across engineering, product, and design teams to deliver end-to-end features.`
+  },
+  {
+    label: "Backend SDE",
+    text: `Backend Software Development Engineer (SDE II)
+
+Requirements:
+- 4+ years building high-throughput distributed systems in Node.js, Go, or Python.
+- In-depth knowledge of relational (PostgreSQL, MySQL) and NoSQL (Redis, MongoDB) databases.
+- Strong grasp of distributed systems, message queues (Kafka, RabbitMQ), and gRPC.
+- Experience designing resilient API architectures, caching layers, and database sharding.
+
+Responsibilities:
+- Build low-latency backend microservices with 99.99% availability.
+- Monitor production metrics, optimize database queries, and reduce p99 latency.`
+  },
+  {
+    label: "Systems / DevOps",
+    text: `Senior Systems & DevOps / Platform Engineer
+
+Requirements:
+- 5+ years managing cloud infrastructure on AWS or GCP using Terraform / OpenTofu.
+- Production expertise with Kubernetes (EKS/GKE), Helm charts, and service meshes (Istio).
+- Deep experience implementing CI/CD automation with GitHub Actions, ArgoCD, and GitLab.
+- Strong background in Linux internals, networking, Prometheus, Grafana, and Datadog observability.
+
+Responsibilities:
+- Manage infrastructure-as-code and container orchestration platforms.
+- Harden system security, zero-trust access controls, and automated deployment pipelines.`
+  }
+];
 
 export default function DashboardPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -136,33 +181,58 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] relative overflow-hidden font-sans selection:bg-emerald-500/30">
-      {/* Ambient Grid Background */}
-      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), transparent 50%), radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 1px, transparent 1px)', backgroundSize: '100% 100%, 32px 32px', opacity: 0.5 }}></div>
+    <main className="min-h-screen bg-[#07090E] text-zinc-100 relative overflow-x-hidden font-sans selection:bg-emerald-500/30 flex flex-col justify-between">
+      {/* Dynamic Ambient Glow System */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] pointer-events-none overflow-hidden opacity-60">
+        <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-emerald-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute top-[-40px] left-[20%] w-[350px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px]"></div>
+        <div className="absolute top-[-40px] right-[20%] w-[350px] h-[300px] bg-teal-500/10 rounded-full blur-[100px]"></div>
+      </div>
+      
+      {/* Precision Micro-Grid Pattern */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-20"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      ></div>
 
-      <header className="sticky top-0 z-40 bg-[var(--background)]/80 backdrop-blur-xl border-b border-white/5 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      {/* Global Navigation Header */}
+      <header className="sticky top-0 z-40 bg-[#07090E]/85 backdrop-blur-2xl border-b border-zinc-800/80 shadow-lg shadow-black/40">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 shadow-inset-glow flex items-center justify-center font-bold text-white tracking-tighter">CC</div>
-            <h1 className="text-xl font-bold tracking-tight text-white">Career Copilot</h1>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 shadow-md shadow-emerald-500/20 flex items-center justify-center font-bold text-slate-950 tracking-tighter text-sm">
+              CC
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base font-extrabold tracking-tight text-white">Career Copilot</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60">PRO</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-6">
+          
+          <div className="flex items-center gap-5">
             <Show when="signed-in">
-              <button onClick={() => setHistoryOpen(true)} className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors ease-smooth active:scale-95">
-                <Clock size={15} /> History
+              <button 
+                onClick={() => setHistoryOpen(true)} 
+                className="flex items-center gap-2 text-xs font-mono font-medium text-zinc-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-zinc-800/60 border border-transparent hover:border-zinc-700/60 active:scale-95"
+              >
+                <Clock size={14} className="text-cyan-400" /> History Drawer
               </button>
             </Show>
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 tracking-wide">
-              <Activity size={14} className="animate-pulse" />
-              Live
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono font-semibold text-emerald-400">
+              <Activity size={12} className="animate-pulse" />
+              SYSTEM ONLINE
             </div>
-            <div className="h-4 w-px bg-white/10 hidden md:block"></div>
+            <div className="h-4 w-px bg-zinc-800 hidden sm:block"></div>
             <Show when="signed-in">
-              <UserButton appearance={{ elements: { userButtonAvatarBox: 'w-8 h-8' } }} />
+              <UserButton appearance={{ elements: { userButtonAvatarBox: 'w-7 h-7' } }} />
             </Show>
             <Show when="signed-out">
               <SignInButton mode="modal">
-                <button className="text-sm font-bold bg-white text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors shadow-inset-top ease-smooth active:scale-95">
+                <button className="text-xs font-bold bg-white hover:bg-zinc-200 text-zinc-950 px-4 py-2 rounded-lg transition-all shadow-sm active:scale-95 font-mono">
                   Sign In
                 </button>
               </SignInButton>
@@ -184,51 +254,259 @@ export default function DashboardPage() {
         }} 
       />
 
-      <div className="max-w-7xl mx-auto px-6 pt-12 pb-32 relative z-10">
+      {/* Main Command Center Stage */}
+      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 relative z-10">
         
-        {/* Input Section */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                <span className="w-4 h-[2px] bg-emerald-500 rounded-full"></span> 01. Ingestion
-              </h2>
-              {resumeText && (
-                <button
-                  type="button"
-                  onClick={() => setStreamModalOpen(true)}
-                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-mono hover:underline transition-colors"
-                >
-                  <Terminal size={12} /> Inspect Stream ({resumeText.length.toLocaleString()} chars)
-                </button>
-              )}
-            </div>
-            <ResumeUploadZone onParsed={setResumeText} onError={setError} />
+        {/* 1. Hero Header & Architecture Live-Telemetry Bar */}
+        <div className="text-center mb-6 pt-2">
+          {/* Engine Version Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium tracking-wide shadow-sm mb-3">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>HYBRID ATS AUDIT ENGINE • DETERMINISTIC V2.4</span>
           </div>
-          <div className="space-y-4">
-            <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2"><span className="w-4 h-[2px] bg-cyan-500 rounded-full"></span> 02. Target Vector</h2>
-            <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
+
+          {/* High-Impact Headline */}
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+            Engineering-Grade Resume &amp;{" "}
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+              ATS Vector Alignment
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="mt-2.5 text-xs sm:text-sm text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal">
+            In-memory binary parsing • Deterministic Jaccard keyword coverage • Zero-leakage PII scrubbing.
+          </p>
+
+          {/* 4-Metric Real-Time Architecture Ticker Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-5xl mx-auto mt-6 p-2 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 backdrop-blur-md shadow-2xl">
+            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
+              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ENGINE
+              </span>
+              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">pdf-parse v1.1.1 (In-Memory Buffer)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
+              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> SCORING
+              </span>
+              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">Deterministic Jaccard + DeepSeek-V3</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
+              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span> PRIVACY
+              </span>
+              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">Automated Client-Side PII Redaction</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
+              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span> DATABASE
+              </span>
+              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">Neon Serverless PG + Prisma Pool</span>
+            </div>
           </div>
         </div>
 
+        {/* 2. Rebalanced Ingestion & Target Vector Cards (Full Height Fill) */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          
+          {/* Card 01: Resume Ingestion */}
+          <div className="rounded-2xl bg-zinc-900/80 border border-zinc-800 hover:border-emerald-500/30 transition-all duration-300 p-5 flex flex-col justify-between shadow-xl min-h-[350px] relative overflow-hidden group">
+            {/* Subtle Grid Ambient Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40"></div>
+            
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+                    <h2 className="text-xs font-bold text-zinc-200 font-mono uppercase tracking-widest">
+                      01. RESUME INGESTION
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {resumeText ? (
+                      <button
+                        type="button"
+                        onClick={() => setStreamModalOpen(true)}
+                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all"
+                      >
+                        <Terminal size={12} /> Inspect Stream ({resumeText.length.toLocaleString()} chars)
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-zinc-500 px-2 py-0.5 rounded bg-zinc-800/80 border border-zinc-700/50">
+                        Max 5MB • RAM Buffer
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Upload Drop Zone Component */}
+                <div className="min-h-[220px] flex flex-col justify-center">
+                  <ResumeUploadZone onParsed={setResumeText} onError={setError} />
+                </div>
+              </div>
+
+              {/* Card Footer Micro-Specs */}
+              <div className="pt-3 mt-3 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+                <span className="flex items-center gap-1 text-emerald-400/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> RAM Stream: {resumeText ? 'Mounted' : 'Awaiting File'}
+                </span>
+                <span>Zero Disk Persistence</span>
+                <span>Encoding: UTF-8</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 02: Target Job Description */}
+          <div className="rounded-2xl bg-zinc-900/80 border border-zinc-800 hover:border-cyan-500/30 transition-all duration-300 p-5 flex flex-col justify-between shadow-xl min-h-[350px] relative overflow-hidden group">
+            {/* Subtle Grid Ambient Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40"></div>
+
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50"></span>
+                    <h2 className="text-xs font-bold text-zinc-200 font-mono uppercase tracking-widest">
+                      02. TARGET VECTOR
+                    </h2>
+                  </div>
+                  
+                  {/* Sample Job Roles Quick-Fill Buttons */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono text-zinc-500 hidden sm:inline">Presets:</span>
+                    {SAMPLE_ROLES.map((role) => (
+                      <button
+                        key={role.label}
+                        type="button"
+                        onClick={() => setJobDescription(role.text)}
+                        className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-zinc-800 hover:bg-cyan-500/20 text-zinc-400 hover:text-cyan-300 border border-zinc-700/60 hover:border-cyan-500/40 transition-all active:scale-95"
+                        title={`Quick-fill with ${role.label} job description`}
+                      >
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dark Themed Monospaced Textarea */}
+                <div className="relative">
+                  <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="Paste target job description or select a role preset above (min 50 characters)..."
+                    className="w-full min-h-[220px] p-3.5 bg-zinc-950/80 border border-zinc-800 hover:border-zinc-700 focus:border-cyan-500/60 rounded-xl resize-none font-mono text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 transition-all leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* Card Footer Micro-Specs & Character Counter */}
+              <div className="pt-3 mt-2 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono">
+                <span className={jobDescription.length > 0 && jobDescription.length < 50 ? "text-rose-400" : "text-zinc-500"}>
+                  {jobDescription.length.toLocaleString()} / 15,000 chars {jobDescription.length > 0 && jobDescription.length < 50 && "(min 50 required)"}
+                </span>
+                <span className={jobDescription.length >= 50 ? "text-emerald-400 flex items-center gap-1" : "text-zinc-500"}>
+                  {jobDescription.length >= 50 ? (
+                    <>
+                      <Check size={12} className="text-emerald-400" /> Vector Validated
+                    </>
+                  ) : (
+                    "Awaiting Input"
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Global Error Banner */}
         {error && (
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl flex items-center gap-3 mb-8 shadow-inset-top animate-in fade-in zoom-in-95 gpu-accel">
-            <AlertCircle size={20} />
-            <span className="text-sm font-medium">{error}</span>
+          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl flex items-center gap-3 mb-6 shadow-lg animate-in fade-in zoom-in-95">
+            <AlertCircle size={18} />
+            <span className="text-xs sm:text-sm font-medium font-mono">{error}</span>
           </div>
         )}
 
-        <div className="flex justify-center mb-16">
+        {/* 3. "Initialize Analysis" CTA Bar */}
+        <div className="flex flex-col items-center justify-center gap-4 my-2">
           <button
             onClick={handleAnalyze}
             disabled={loading || cooldown > 0 || !resumeText || jobDescription.length < 50}
-            className="group relative flex items-center gap-3 bg-white text-slate-950 px-8 py-3.5 rounded-xl font-bold transition-all ease-spring hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-[0_4px_24px_-8px_rgba(255,255,255,0.5)]"
+            className="group relative flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 text-slate-950 px-10 py-3.5 rounded-xl font-bold transition-all ease-spring hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-xl shadow-emerald-500/20 text-sm tracking-wide"
           >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <Activity size={18} className="group-hover:text-emerald-600 transition-colors" />}
-            {loading ? 'Synthesizing Vectors...' : cooldown > 0 ? `Rate Limit (${cooldown}s)` : 'Initialize Analysis'}
-            <div className="absolute inset-0 rounded-xl ring-2 ring-white/20 ring-offset-2 ring-offset-[#0A0D12] pointer-events-none scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all ease-spring"></div>
+            {loading ? (
+              <Loader2 size={18} className="animate-spin text-slate-950" />
+            ) : (
+              <Activity size={18} className="group-hover:rotate-12 transition-transform text-slate-950" />
+            )}
+            <span>
+              {loading ? 'Synthesizing Vectors...' : cooldown > 0 ? `Rate Limit (${cooldown}s)` : 'Initialize Analysis'}
+            </span>
           </button>
+
+          {/* Security and Architectural Checkmarks */}
+          <div className="flex items-center gap-4 text-xs font-mono text-zinc-400 flex-wrap justify-center pt-1">
+            <span className="flex items-center gap-1.5 text-zinc-300">
+              <span className="text-emerald-400 font-bold">✓</span> Zero disk storage
+            </span>
+            <span className="text-zinc-700 hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5 text-zinc-300">
+              <span className="text-emerald-400 font-bold">✓</span> PII anonymized before dispatch
+            </span>
+            <span className="text-zinc-700 hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5 text-zinc-300">
+              <span className="text-emerald-400 font-bold">✓</span> Deterministic token match
+            </span>
+          </div>
         </div>
+
+        {/* 4. Bottom Systems Capabilities Strip (Fills Viewport Depth) */}
+        {!analysis && (
+          <div className="mt-8 pt-8 border-t border-zinc-800/80">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4 text-center">
+              Core System Capabilities &amp; Audit Pipeline
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    01 • SCORING CORE
+                  </span>
+                </div>
+                <h4 className="text-sm font-semibold text-zinc-200">Deterministic Tokenizer</h4>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  Mathematical n-gram intersection independent of LLM hallucination. Computes exact Jaccard similarity and coverage ratio.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    02 • STREAM AUDITOR
+                  </span>
+                </div>
+                <h4 className="text-sm font-semibold text-zinc-200">ATS Stream Inspector</h4>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  Real-time detection for (cid:xxx) font glitches, spacing collapsings, merged timelines, and broken character kerning.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                    03 • REMEDIATION
+                  </span>
+                </div>
+                <h4 className="text-sm font-semibold text-zinc-200">STAR Interview Synthesis</h4>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  Gap-remediated behavioral and technical scenario generation powered by DeepSeek-V3 with talking points and pitfalls.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Results Section */}
         {Boolean(analysis) && (() => {
