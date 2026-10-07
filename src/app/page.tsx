@@ -6,6 +6,7 @@ import { ResumeUploadZone } from '@/components/dashboard/ResumeUploadZone';
 import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard';
 import { ExportDashboardCTA } from '@/components/dashboard/ExportDashboardCTA';
 import { AtsRawStreamModal } from '@/components/dashboard/AtsRawStreamModal';
+import { ArchitecturePipelineTracer } from '@/components/dashboard/ArchitecturePipelineTracer';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { Show, SignInButton, UserButton, useAuth } from '@clerk/nextjs';
 import { Loader2, AlertCircle, Clock, Activity, Terminal, Check } from 'lucide-react';
@@ -278,33 +279,8 @@ export default function DashboardPage() {
             In-memory binary parsing • Deterministic Jaccard keyword coverage • Zero-leakage PII scrubbing.
           </p>
 
-          {/* 4-Metric Real-Time Architecture Ticker Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-5xl mx-auto mt-6 p-2 rounded-2xl bg-zinc-950/70 border border-zinc-800/80 backdrop-blur-md shadow-2xl">
-            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ENGINE
-              </span>
-              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">pdf-parse v1.1.1 (In-Memory Buffer)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> SCORING
-              </span>
-              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">Deterministic Jaccard + DeepSeek-V3</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span> PRIVACY
-              </span>
-              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">Automated Client-Side PII Redaction</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 flex flex-col justify-between text-left">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span> DATABASE
-              </span>
-              <span className="text-xs font-semibold text-zinc-200 font-mono mt-1">Neon Serverless PG + Prisma Pool</span>
-            </div>
-          </div>
+          {/* Live Pipeline Architecture Tracer Component */}
+          <ArchitecturePipelineTracer />
         </div>
 
         {/* 2. Rebalanced Ingestion & Target Vector Cards (Full Height Fill) */}
