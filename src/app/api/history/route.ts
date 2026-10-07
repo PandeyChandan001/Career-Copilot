@@ -3,6 +3,8 @@ import { getUserAnalyses } from '@/services/historyService';
 import { AppError } from '@/lib/errors/AppError';
 import { auth } from '@clerk/nextjs/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const { userId } = await auth();

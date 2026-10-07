@@ -3,6 +3,8 @@ import { getUserAnalysisById } from '@/services/historyService';
 import { AppError } from '@/lib/errors/AppError';
 import { auth } from '@clerk/nextjs/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();

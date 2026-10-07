@@ -4,6 +4,9 @@ import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
 import { applyRateLimit } from '@/lib/rateLimit';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const rateLimitResponse = applyRateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;

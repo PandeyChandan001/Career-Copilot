@@ -3,6 +3,9 @@ import { generateTailoredResumeData, renderResumeToStream } from '@/services/res
 import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();

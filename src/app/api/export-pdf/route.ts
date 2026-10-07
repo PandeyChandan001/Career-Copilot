@@ -3,6 +3,9 @@ import { renderResumeToStream } from '@/services/resumeService';
 import { TailoredResumeSchema } from '@/schemas/resumeSchema';
 import { applyRateLimit } from '@/lib/rateLimit';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   // Allow more frequent exports since they don't hit the LLM API
   const rateLimitResponse = applyRateLimit(request, 15, 60000); 

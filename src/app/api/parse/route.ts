@@ -3,6 +3,9 @@ import { extractTextFromPDF } from '@/services/parserService';
 import { AppError } from '@/lib/errors/AppError';
 import { parseFileSchema } from '@/schemas/parseSchema';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
