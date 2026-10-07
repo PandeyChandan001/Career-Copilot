@@ -23,6 +23,13 @@ export default function DashboardPage() {
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState<PrepAnalysisResult | null>(null);
   const [redactedCounts, setRedactedCounts] = useState<{ emails: number; phones: number; urls: number } | null>(null);
+  const [deterministicData, setDeterministicData] = useState<{
+    keywordMatchScore: number;
+    matchedKeywords: string[];
+    missingKeywords: string[];
+    jaccardSimilarity: number;
+    coverageRatio: number;
+  } | null>(null);
   const { isSignedIn } = useAuth();
 
   const [cooldown, setCooldown] = useState(0);
@@ -55,6 +62,7 @@ export default function DashboardPage() {
       setError('');
       setAnalysis(null);
       setRedactedCounts(null);
+      setDeterministicData(null);
       
       const res = await fetch('/api/analyze', {
         method: 'POST',
@@ -78,6 +86,11 @@ export default function DashboardPage() {
       const counts = json.redactedCounts || json.meta?.redactedCounts;
       if (counts) {
         setRedactedCounts(counts);
+      }
+
+      const det = json.deterministicScoring || json.meta?.deterministicScoring || (json.analysis as any)?.deterministicScoring;
+      if (det) {
+        setDeterministicData(det);
       }
       
       const rawPayload = json.analysis || json.data || json;
@@ -169,6 +182,7 @@ export default function DashboardPage() {
           setJobDescription(jd);
           setAnalysis(result);
           setRedactedCounts(null);
+          setDeterministicData(null);
           setError('');
         }} 
       />
@@ -250,37 +264,36 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   )}
+                  {deterministicData && (
+                    <div className="p-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs rounded-lg font-medium flex items-center gap-2 px-4 shadow-inset-top">
+                      <span>⚙️</span>
+                      <span>
+                        Deterministic Match: {deterministicData.keywordMatchScore}% (Jaccard: {deterministicData.jaccardSimilarity})
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <ExportDashboardCTA />
               </div>
               
               {/* Audit Results Container */}
             <div className="w-full max-w-5xl mx-auto mt-8 space-y-6 pb-24 text-white">
-              {/* 1. Score & Summary */}
-              <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">Match Score</span>
-                    <h2 className="text-4xl font-bold text-emerald-400 mt-1">
-                      {typeof (analysis as any)?.matchScore === 'object'
-                        ? (analysis as any)?.matchScore?.total ?? 78
-                        : (analysis as any)?.matchScore ?? 78}%
-                    </h2>
-                  </div>
-                  <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs rounded-full">
-                    Ready for Review
-                  </div>
-                </div>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                  {(analysis as any)?.summary || "Analysis synthesized successfully."}
-                </p>
+              {/* 1. Score Gauge Component driven by Deterministic Algorithm */}
+              <div className="shadow-inset-top">
+                <MatchScoreCard score={matchScore} summary={summary} />
               </div>
 
-              {/* 2. Strengths & Missing Keywords */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-                  <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-4">Key Strengths</h3>
-                  <ul className="space-y-2">
+              {/* 2. Qualitative Strengths & Deterministic Keywords */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Key Strengths (DeepSeek Qualitative) */}
+                <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Key Strengths</h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                      AI Critique
+                    </span>
+                  </div>
+                  <ul className="space-y-2 flex-1">
                     {((analysis as any)?.strengths || ["Strong foundational experience identified"]).map((s: any, idx: number) => (
                       <li key={idx} className="text-sm text-zinc-300 flex items-start gap-2">
                         <span className="text-emerald-400 font-bold">•</span>
@@ -290,14 +303,49 @@ export default function DashboardPage() {
                   </ul>
                 </div>
 
-                <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-                  <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-4">Missing Keywords</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {((analysis as any)?.missingKeywords || ["Python", "CI/CD", "Docker"]).map((kw: any, idx: number) => (
-                      <span key={idx} className="px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs rounded-lg">
-                        {typeof kw === 'string' ? kw : kw?.keyword || JSON.stringify(kw)}
-                      </span>
-                    ))}
+                {/* Matched Keywords (Deterministic Engine) */}
+                <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
+                      Matched Keywords ({((deterministicData?.matchedKeywords || (analysis as any)?.matchedKeywords || []).length)})
+                    </h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">
+                      Exact Overlap
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto pr-1">
+                    {((deterministicData?.matchedKeywords || (analysis as any)?.matchedKeywords || []).length > 0) ? (
+                      (deterministicData?.matchedKeywords || (analysis as any)?.matchedKeywords || []).slice(0, 20).map((kw: any, idx: number) => (
+                        <span key={idx} className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs rounded-lg font-medium">
+                          ✓ {typeof kw === 'string' ? kw : kw?.keyword || JSON.stringify(kw)}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-xs text-zinc-500 italic">No exact keyword overlap found.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Missing Keywords (Deterministic Engine) */}
+                <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
+                      Missing Keywords ({((deterministicData?.missingKeywords || (analysis as any)?.missingKeywords || []).length)})
+                    </h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono">
+                      Target Gaps
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto pr-1">
+                    {((deterministicData?.missingKeywords || (analysis as any)?.missingKeywords || []).length > 0) ? (
+                      (deterministicData?.missingKeywords || (analysis as any)?.missingKeywords || []).slice(0, 20).map((kw: any, idx: number) => (
+                        <span key={idx} className="px-2 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs rounded-lg font-medium">
+                          + {typeof kw === 'string' ? kw : kw?.keyword || JSON.stringify(kw)}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-xs text-emerald-400 font-medium">All target keywords matched!</p>
+                    )}
                   </div>
                 </div>
               </div>

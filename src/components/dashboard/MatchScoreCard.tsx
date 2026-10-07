@@ -114,9 +114,12 @@ export function MatchScoreCard({ score, summary }: Props) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-white/5">
           <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold">
-              <span className="text-slate-400 uppercase tracking-wider">Technical</span>
-              <span className="text-white">{techScore}%</span>
+            <div className="flex justify-between text-xs font-semibold items-center">
+              <span className="text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                Technical / Keyword Match
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono font-normal lowercase">deterministic</span>
+              </span>
+              <span className="text-white font-mono">{techScore}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
               <div 
