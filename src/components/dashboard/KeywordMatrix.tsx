@@ -70,7 +70,7 @@ export function KeywordMatrix({
                 {kw.suggestedBullet && (
                   <div className="mt-auto">
                     <p className="text-xs text-slate-400 italic mb-2 line-clamp-2 leading-relaxed">
-                      "{kw.suggestedBullet}"
+                      &ldquo;{kw.suggestedBullet}&rdquo;
                     </p>
                     <button 
                       onClick={() => copyToClipboard(kw.suggestedBullet!, `missing-${i}`)}

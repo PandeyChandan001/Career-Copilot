@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import { generateGapAnalysis } from '@/services/aiService';
 import { saveAnalysisRecord } from '@/services/historyService';
-import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
-import { AppError } from '@/lib/errors/AppError';
 import { applyRateLimit } from '@/lib/rateLimit';
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
 import { sanitizeResumeText } from '@/lib/sanitizer';
 import { calculateDeterministicMatch } from '@/lib/scoring';
 

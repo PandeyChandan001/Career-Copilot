@@ -22,21 +22,25 @@ export function HistoryDrawer({ isOpen, onClose, onRestore }: Props) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) fetchRecords();
-  }, [isOpen]);
-
-  const fetchRecords = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/history');
-      const data = await res.json();
-      if (data.success) setRecords(data.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+    let ignore = false;
+    if (isOpen) {
+      queueMicrotask(async () => {
+        setLoading(true);
+        try {
+          const res = await fetch('/api/history');
+          const data = await res.json();
+          if (!ignore && data.success) setRecords(data.data);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          if (!ignore) setLoading(false);
+        }
+      });
     }
-  };
+    return () => {
+      ignore = true;
+    };
+  }, [isOpen]);
 
   const handleRestore = async (id: string) => {
     setLoadingId(id);

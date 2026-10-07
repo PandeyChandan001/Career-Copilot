@@ -14,7 +14,7 @@ export function ResumeUploadZone({ onParsed, onError }: Props) {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processFile = async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     if (file.type !== 'application/pdf') {
       onError('Please upload a valid PDF document.');
       return;
@@ -44,7 +44,7 @@ export function ResumeUploadZone({ onParsed, onError }: Props) {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [onError, onParsed]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -53,7 +53,7 @@ export function ResumeUploadZone({ onParsed, onError }: Props) {
     if (e.dataTransfer.files?.length > 0) {
       processFile(e.dataTransfer.files[0]);
     }
-  }, []);
+  }, [processFile]);
 
   return (
     <div 

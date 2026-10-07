@@ -5,11 +5,6 @@ import { HistoryDrawer } from '@/components/dashboard/HistoryDrawer';
 import { ResumeUploadZone } from '@/components/dashboard/ResumeUploadZone';
 import { JobDescriptionInput } from '@/components/dashboard/JobDescriptionInput';
 import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard';
-import { SkillGapList } from '@/components/dashboard/SkillGapList';
-import { PreparationRoadmap } from '@/components/dashboard/PreparationRoadmap';
-import { InterviewQuestionBank } from '@/components/dashboard/InterviewQuestionBank';
-import { KeywordMatrix } from '@/components/dashboard/KeywordMatrix';
-import { LiveResumeRewrite } from '@/components/dashboard/LiveResumeRewrite';
 import { ExportDashboardCTA } from '@/components/dashboard/ExportDashboardCTA';
 import { AtsRawStreamModal } from '@/components/dashboard/AtsRawStreamModal';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
@@ -247,19 +242,6 @@ export default function DashboardPage() {
                 parseabilityScore: 90 
               };
 
-          const keywords = currentAnalysis.keywordMatrix || currentAnalysis.keywords || [
-            ...(currentAnalysis.missingKeywords || []).map((k: any) => 
-              typeof k === 'string' ? { keyword: k, isMissing: true } : { ...k, isMissing: true }
-            ),
-            ...(currentAnalysis.matchedKeywords || []).map((k: any) => 
-              typeof k === 'string' ? { keyword: k, isMissing: false } : { ...k, isMissing: false }
-            )
-          ];
-
-          const rewrites = currentAnalysis.resumeRewrites || currentAnalysis.rewrites || currentAnalysis.bulletRewrites || [];
-          const questionBank = currentAnalysis.questionBank || currentAnalysis.questions || [];
-          const roadmap = currentAnalysis.preparationPlan || currentAnalysis.roadmap || [];
-          const skillGaps = currentAnalysis.skillGaps || [];
           const summary = currentAnalysis.summary || "Analysis completed successfully.";
 
           return (
@@ -475,7 +457,7 @@ export default function DashboardPage() {
                           {q.sampleAnswer && (
                             <div className="pt-1 border-t border-zinc-800 mt-2">
                               <span className="text-emerald-400 font-semibold uppercase text-[10px]">High-Scoring Sample Answer: </span>
-                              <p className="text-zinc-200 italic mt-0.5">"{q.sampleAnswer}"</p>
+                              <p className="text-zinc-200 italic mt-0.5">&ldquo;{q.sampleAnswer}&rdquo;</p>
                             </div>
                           )}
                         </div>

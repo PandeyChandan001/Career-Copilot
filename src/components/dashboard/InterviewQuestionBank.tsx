@@ -30,7 +30,7 @@ export function InterviewQuestionBank({ questions }: Props) {
     <div className="space-y-6">
       {/* Segmented Controller */}
       <div className="inline-flex bg-black/40 p-1.5 rounded-xl border border-white/5 shadow-inset-top w-full md:w-auto relative">
-        {tabs.map((tab, index) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -103,7 +103,7 @@ export function InterviewQuestionBank({ questions }: Props) {
                         <MessageSquareQuote size={18} className="text-emerald-400 mt-0.5 shrink-0" />
                         <div>
                           <h5 className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-1.5">High-Scoring Sample Answer</h5>
-                          <p className="text-sm text-slate-200 leading-relaxed italic">"{q.sampleAnswer}"</p>
+                          <p className="text-sm text-slate-200 leading-relaxed italic">&ldquo;{q.sampleAnswer}&rdquo;</p>
                         </div>
                       </div>
                     )}
