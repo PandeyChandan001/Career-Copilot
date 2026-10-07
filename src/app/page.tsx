@@ -11,12 +11,14 @@ import { InterviewQuestionBank } from '@/components/dashboard/InterviewQuestionB
 import { KeywordMatrix } from '@/components/dashboard/KeywordMatrix';
 import { LiveResumeRewrite } from '@/components/dashboard/LiveResumeRewrite';
 import { ExportDashboardCTA } from '@/components/dashboard/ExportDashboardCTA';
+import { AtsRawStreamModal } from '@/components/dashboard/AtsRawStreamModal';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { Show, SignInButton, UserButton, useAuth } from '@clerk/nextjs';
-import { Loader2, AlertCircle, Clock, Activity } from 'lucide-react';
+import { Loader2, AlertCircle, Clock, Activity, Terminal } from 'lucide-react';
 
 export default function DashboardPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [streamModalOpen, setStreamModalOpen] = useState(false);
   const [resumeText, setResumeText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -192,7 +194,20 @@ export default function DashboardPage() {
         {/* Input Section */}
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
           <div className="space-y-4">
-            <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2"><span className="w-4 h-[2px] bg-emerald-500 rounded-full"></span> 01. Ingestion</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-4 h-[2px] bg-emerald-500 rounded-full"></span> 01. Ingestion
+              </h2>
+              {resumeText && (
+                <button
+                  type="button"
+                  onClick={() => setStreamModalOpen(true)}
+                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-mono hover:underline transition-colors"
+                >
+                  <Terminal size={12} /> Inspect Stream ({resumeText.length.toLocaleString()} chars)
+                </button>
+              )}
+            </div>
             <ResumeUploadZone onParsed={setResumeText} onError={setError} />
           </div>
           <div className="space-y-4">
@@ -273,7 +288,17 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </div>
-                <ExportDashboardCTA />
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setStreamModalOpen(true)}
+                    className="flex items-center gap-2 px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white rounded-xl text-xs font-semibold transition-all border border-zinc-700/80 shadow-inset-top active:scale-95"
+                    title="Inspect raw plaintext stream extracted by pdf-parse"
+                  >
+                    <Terminal size={14} className="text-cyan-400" />
+                    <span>Inspect ATS Text Stream</span>
+                  </button>
+                  <ExportDashboardCTA />
+                </div>
               </div>
               
               {/* Audit Results Container */}
@@ -473,6 +498,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Raw Stream Inspector Modal */}
+      <AtsRawStreamModal
+        isOpen={streamModalOpen}
+        onClose={() => setStreamModalOpen(false)}
+        rawText={resumeText}
+      />
     </main>
   );
 }
