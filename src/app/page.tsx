@@ -122,7 +122,6 @@ export default function DashboardPage() {
           throw new Error('High traffic volume: Rate limit temporarily reached. Please wait 15 seconds before retrying.');
         }
         const errorMsg = json.error || `Server error: ${res.status}`;
-        alert(`Analysis failed: ${errorMsg}`);
         throw new Error(errorMsg);
       }
       
@@ -174,7 +173,6 @@ export default function DashboardPage() {
     } catch (err: any) {
       console.error("[CLIENT_FETCH_CRASH]:", err);
       setError(err.message || "Network request failed");
-      alert(`Network error: ${err.message}`);
       setAnalysis(null);
     } finally {
       setLoading(false);
