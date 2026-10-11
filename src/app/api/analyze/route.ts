@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateGapAnalysis, openrouter } from '@/services/aiService';
+import { generateGapAnalysis, customProvider, getApiKey } from '@/services/aiService';
 import { saveAnalysisRecord } from '@/services/historyService';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { auth, currentUser } from '@clerk/nextjs/server';
@@ -13,6 +13,11 @@ export async function POST(request: Request) {
   const rateLimitStatus = checkRateLimit(request);
   if (!rateLimitStatus.success) {
     console.warn('[RATE_LIMIT_BYPASS]: Rate limit threshold reached; continuing for smooth live demo.');
+  }
+
+  const key = getApiKey();
+  if (!key) {
+    console.warn('[ANALYZE_ROUTE_WARNING]: OPENROUTER_API_KEY / OPENAI_API_KEY is empty in environment; using deterministic fallback.');
   }
 
   try {

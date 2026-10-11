@@ -1,11 +1,12 @@
 import { renderToStream } from '@react-pdf/renderer';
 import React from 'react';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { TailoredResumeSchema, TailoredResumeData } from '../schemas/resumeSchema';
 import { AppError } from '../lib/errors/AppError';
 import { ATSResumeDocument } from '../components/pdf/ATSResumeDocument';
 import { calculateDeterministicMatch } from '../lib/scoring';
-import { openrouter } from './aiService';
+import { getApiKey } from './aiService';
 
 function buildFallbackResumeData(resumeText: string, jobDescription: string): TailoredResumeData {
   const det = calculateDeterministicMatch(resumeText, jobDescription);
@@ -60,6 +61,16 @@ export async function generateTailoredResumeData(
   resumeText: string,
   jobDescription: string
 ): Promise<TailoredResumeData> {
+  const runtimeKey = getApiKey();
+  if (!runtimeKey) {
+    return buildFallbackResumeData(resumeText, jobDescription);
+  }
+
+  const runtimeProvider = createOpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: runtimeKey,
+  });
+
   const prompt = `You are a professional technical resume writer and ATS specialist. Extract the candidate's real experience and rewrite bullet points using the Google XYZ formula (Accomplished X, measured by Y, by doing Z). Naturally weave in target keywords from the job description without fabricating experiences or technologies the candidate never used.
 
 Resume:
@@ -108,7 +119,7 @@ Return ONLY a valid, raw JSON object matching this exact structure (no markdown 
 
   try {
     const { text } = await generateText({
-      model: openrouter('deepseek/deepseek-chat'),
+      model: runtimeProvider.chat('deepseek/deepseek-chat'),
       prompt,
       temperature: 0.3,
     });

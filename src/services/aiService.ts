@@ -3,16 +3,23 @@ import { generateText } from 'ai';
 import { PrepAnalysisSchema, PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { calculateDeterministicMatch } from '@/lib/scoring';
 
-const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
-
-if (!apiKey && process.env.NODE_ENV === 'development') {
-  console.warn('Missing OpenRouter/OpenAI API key. Please check your environment variables.');
+export function getApiKey(): string {
+  return (
+    process.env.OPENAI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
+    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
+    ''
+  ).trim();
 }
 
-export const openrouter = createOpenAI({
+const key = getApiKey();
+
+export const customProvider = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: apiKey || 'missing-api-key-fallback',
+  apiKey: key || 'sk-or-v1-fallback-prevent-crash',
 });
+
+export const openrouter = customProvider;
 
 function buildDeterministicFallbackAnalysis(resumeText: string, jobDescription: string): PrepAnalysisResult {
   const det = calculateDeterministicMatch(resumeText, jobDescription);
@@ -166,10 +173,16 @@ function buildDeterministicFallbackAnalysis(resumeText: string, jobDescription: 
 }
 
 export async function generateGapAnalysis(resumeText: string, jobDescription: string): Promise<PrepAnalysisResult> {
-  if (!apiKey) {
-    console.warn('[AI_SERVICE_FALLBACK]: No OPENROUTER_API_KEY found in environment; using deterministic analysis engine.');
+  const runtimeKey = getApiKey();
+  if (!runtimeKey) {
+    console.warn('[AI_SERVICE_FALLBACK]: No OPENROUTER_API_KEY / OPENAI_API_KEY found in environment; using deterministic analysis engine.');
     return buildDeterministicFallbackAnalysis(resumeText, jobDescription);
   }
+
+  const runtimeProvider = createOpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: runtimeKey,
+  });
 
   const prompt = `
 Analyze the following resume against the job description to provide an elite, end-to-end ATS optimization and career prep report.
@@ -238,7 +251,7 @@ Return ONLY a valid, raw JSON object matching EXACTLY this schema (no markdown, 
     let text = '';
     try {
       const primaryResult = await generateText({
-        model: openrouter('deepseek/deepseek-chat'),
+        model: runtimeProvider.chat('deepseek/deepseek-chat'),
         prompt,
         temperature: 0.3,
       });
@@ -246,7 +259,7 @@ Return ONLY a valid, raw JSON object matching EXACTLY this schema (no markdown, 
     } catch (primaryErr: any) {
       console.warn('[OPENROUTER_PRIMARY_MODEL_FALLBACK]: Retrying with meta-llama/llama-3.3-70b-instruct:', primaryErr?.message || primaryErr);
       const retryResult = await generateText({
-        model: openrouter('meta-llama/llama-3.3-70b-instruct'),
+        model: runtimeProvider.chat('meta-llama/llama-3.3-70b-instruct'),
         prompt,
         temperature: 0.3,
       });
