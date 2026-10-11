@@ -235,11 +235,23 @@ Return ONLY a valid, raw JSON object matching EXACTLY this schema (no markdown, 
 `;
 
   try {
-    const { text } = await generateText({
-      model: openrouter('deepseek/deepseek-chat'),
-      prompt,
-      temperature: 0.3,
-    });
+    let text = '';
+    try {
+      const primaryResult = await generateText({
+        model: openrouter('deepseek/deepseek-chat'),
+        prompt,
+        temperature: 0.3,
+      });
+      text = primaryResult.text;
+    } catch (primaryErr: any) {
+      console.warn('[OPENROUTER_PRIMARY_MODEL_FALLBACK]: Retrying with meta-llama/llama-3.3-70b-instruct:', primaryErr?.message || primaryErr);
+      const retryResult = await generateText({
+        model: openrouter('meta-llama/llama-3.3-70b-instruct'),
+        prompt,
+        temperature: 0.3,
+      });
+      text = retryResult.text;
+    }
 
     if (!text) {
       return buildDeterministicFallbackAnalysis(resumeText, jobDescription);

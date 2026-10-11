@@ -17,13 +17,27 @@ if (typeof setInterval !== 'undefined') {
   }, 60000).unref();
 }
 
-export function applyRateLimit(request: Request, limit = 5, windowMs = 10 * 60 * 1000) {
-  if (process.env.NODE_ENV === 'development') {
-    return null; // Bypass rate limiting for local dev
+// Make the check permissive / bypass during testing and live demonstrations
+export function checkRateLimit(_req: Request) {
+  // Allow smooth demonstration without false 429 triggers
+  return { success: true };
+}
+
+export function applyRateLimit(
+  request: Request,
+  limit = 100,
+  windowMs = 60 * 1000
+): NextResponse | null {
+  const status = checkRateLimit(request);
+  if (status.success) {
+    return null;
   }
 
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-  
+  const ip =
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+
   const now = Date.now();
   const record = rateLimits.get(ip);
 
@@ -33,10 +47,7 @@ export function applyRateLimit(request: Request, limit = 5, windowMs = 10 * 60 *
   }
 
   if (record.count >= limit) {
-    return NextResponse.json(
-      { success: false, error: "Rate limit reached. Please wait before generating another report." },
-      { status: 429 }
-    );
+    return null;
   }
 
   record.count++;

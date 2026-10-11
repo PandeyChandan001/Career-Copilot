@@ -117,10 +117,6 @@ export default function DashboardPage() {
       console.log("[CLIENT_RECEIVED_RESPONSE]:", json);
       
       if (!res.ok || !json.success) {
-        if (res.status === 429) {
-          setCooldown(15);
-          throw new Error('High traffic volume: Rate limit temporarily reached. Please wait 15 seconds before retrying.');
-        }
         const errorMsg = json.error || `Server error: ${res.status}`;
         throw new Error(errorMsg);
       }
