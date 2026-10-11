@@ -2,13 +2,20 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { PrepAnalysisSchema } from '@/schemas/analysisSchema';
 
-const openrouter = createOpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
-
 export async function generateGapAnalysis(resumeText: string, jobDescription: string) {
-const prompt = `
+  const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "OPENROUTER_API_KEY is missing from your deployment environment. Please add OPENROUTER_API_KEY in your Vercel Project Settings (Settings > Environment Variables), then redeploy the project."
+    );
+  }
+
+  const openrouter = createOpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey,
+  });
+
+  const prompt = `
 Analyze the following resume against the job description to provide an elite, end-to-end ATS optimization and career prep report.
 
 RESUME:
