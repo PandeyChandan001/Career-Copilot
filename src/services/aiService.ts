@@ -1,5 +1,18 @@
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText } from 'ai';
 import { PrepAnalysisSchema, PrepAnalysisResult } from '@/schemas/analysisSchema';
 import { calculateDeterministicMatch } from '@/lib/scoring';
+
+const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
+
+if (!apiKey && process.env.NODE_ENV === 'development') {
+  console.warn('Missing OpenRouter/OpenAI API key. Please check your environment variables.');
+}
+
+export const openrouter = createOpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: apiKey || 'missing-api-key-fallback',
+});
 
 function buildDeterministicFallbackAnalysis(resumeText: string, jobDescription: string): PrepAnalysisResult {
   const det = calculateDeterministicMatch(resumeText, jobDescription);
@@ -153,13 +166,6 @@ function buildDeterministicFallbackAnalysis(resumeText: string, jobDescription: 
 }
 
 export async function generateGapAnalysis(resumeText: string, jobDescription: string): Promise<PrepAnalysisResult> {
-  const apiKey = (
-    process.env.OPENROUTER_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    ''
-  ).trim();
-
   if (!apiKey) {
     console.warn('[AI_SERVICE_FALLBACK]: No OPENROUTER_API_KEY found in environment; using deterministic analysis engine.');
     return buildDeterministicFallbackAnalysis(resumeText, jobDescription);
@@ -229,34 +235,11 @@ Return ONLY a valid, raw JSON object matching EXACTLY this schema (no markdown, 
 `;
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://career-copilot.vercel.app',
-        'X-Title': 'Career Copilot',
-      },
-      body: JSON.stringify({
-        model: 'deepseek/deepseek-chat',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.3,
-      }),
+    const { text } = await generateText({
+      model: openrouter('deepseek/deepseek-chat'),
+      prompt,
+      temperature: 0.3,
     });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.warn(`[OPENROUTER_HTTP_${response.status}]:`, errText);
-      return buildDeterministicFallbackAnalysis(resumeText, jobDescription);
-    }
-
-    const data = await response.json();
-    const text: string = data?.choices?.[0]?.message?.content || '';
 
     if (!text) {
       return buildDeterministicFallbackAnalysis(resumeText, jobDescription);

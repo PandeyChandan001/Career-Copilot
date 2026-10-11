@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateGapAnalysis } from '@/services/aiService';
+import { generateGapAnalysis, openrouter } from '@/services/aiService';
 import { saveAnalysisRecord } from '@/services/historyService';
 import { applyRateLimit } from '@/lib/rateLimit';
 import { auth, currentUser } from '@clerk/nextjs/server';

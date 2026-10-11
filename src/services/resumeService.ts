@@ -1,9 +1,11 @@
 import { renderToStream } from '@react-pdf/renderer';
 import React from 'react';
+import { generateText } from 'ai';
 import { TailoredResumeSchema, TailoredResumeData } from '../schemas/resumeSchema';
 import { AppError } from '../lib/errors/AppError';
 import { ATSResumeDocument } from '../components/pdf/ATSResumeDocument';
 import { calculateDeterministicMatch } from '../lib/scoring';
+import { openrouter } from './aiService';
 
 function buildFallbackResumeData(resumeText: string, jobDescription: string): TailoredResumeData {
   const det = calculateDeterministicMatch(resumeText, jobDescription);
@@ -58,17 +60,6 @@ export async function generateTailoredResumeData(
   resumeText: string,
   jobDescription: string
 ): Promise<TailoredResumeData> {
-  const apiKey = (
-    process.env.OPENROUTER_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    ''
-  ).trim();
-
-  if (!apiKey) {
-    return buildFallbackResumeData(resumeText, jobDescription);
-  }
-
   const prompt = `You are a professional technical resume writer and ATS specialist. Extract the candidate's real experience and rewrite bullet points using the Google XYZ formula (Accomplished X, measured by Y, by doing Z). Naturally weave in target keywords from the job description without fabricating experiences or technologies the candidate never used.
 
 Resume:
@@ -100,7 +91,7 @@ Return ONLY a valid, raw JSON object matching this exact structure (no markdown 
   ],
   "education": [
     {
-      "institution": "University Name",
+      "institution": "University of Technology",
       "degree": "Degree",
       "year": "Graduation Year",
       "highlights": ["Highlight 1"]
@@ -116,27 +107,12 @@ Return ONLY a valid, raw JSON object matching this exact structure (no markdown 
 }`;
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://career-copilot.vercel.app',
-        'X-Title': 'Career Copilot',
-      },
-      body: JSON.stringify({
-        model: 'deepseek/deepseek-chat',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-      }),
+    const { text } = await generateText({
+      model: openrouter('deepseek/deepseek-chat'),
+      prompt,
+      temperature: 0.3,
     });
 
-    if (!response.ok) {
-      return buildFallbackResumeData(resumeText, jobDescription);
-    }
-
-    const data = await response.json();
-    const text: string = data?.choices?.[0]?.message?.content || '';
     if (!text) {
       return buildFallbackResumeData(resumeText, jobDescription);
     }
