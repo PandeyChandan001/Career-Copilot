@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateGapAnalysis, customProvider, getApiKey } from '@/services/aiService';
+import { generateGapAnalysis, getApiKey, detectJobDomain, generateNeutralBullet } from '@/services/aiService';
 import { saveAnalysisRecord } from '@/services/historyService';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { auth, currentUser } from '@clerk/nextjs/server';
@@ -53,9 +53,11 @@ export async function POST(request: Request) {
     const { cleanText: sanitizedResumeText, redactedCounts } = sanitizeResumeText(resumeText);
     console.log("[PII_SANITIZER]: Redacted PII counts:", redactedCounts);
 
-    // Compute deterministic keyword metrics
+    // Compute deterministic keyword metrics and detect target domain
+    const detectedDomain = detectJobDomain(jobDescription, sanitizedResumeText);
     const deterministicScoring = calculateDeterministicMatch(sanitizedResumeText, jobDescription);
     console.log("[DETERMINISTIC_SCORING]:", {
+      detectedDomain,
       keywordMatchScore: deterministicScoring.keywordMatchScore,
       matchedCount: deterministicScoring.matchedKeywords.length,
       missingCount: deterministicScoring.missingKeywords.length,
@@ -87,9 +89,28 @@ export async function POST(request: Request) {
       ...(result.missingKeywords || [])
     ]));
 
-    // Pass matched keywords directly
+    // Ensure every missing keyword in keywordMatrix has a domain-appropriate suggestedBullet
+    if (Array.isArray(result.keywordMatrix)) {
+      result.keywordMatrix = result.keywordMatrix.map((item) => {
+        const hasSoftwareBoilerplate =
+          detectedDomain !== 'SOFTWARE' &&
+          typeof item.suggestedBullet === 'string' &&
+          /throughput|high-throughput|microservices|p95 latency|unit test/i.test(item.suggestedBullet);
+
+        if (item.isMissing && (!item.suggestedBullet || hasSoftwareBoilerplate)) {
+          return {
+            ...item,
+            suggestedBullet: generateNeutralBullet(item.keyword, detectedDomain),
+          };
+        }
+        return item;
+      });
+    }
+
+    // Pass matched keywords and domain metadata directly
     (result as any).matchedKeywords = deterministicScoring.matchedKeywords;
     (result as any).deterministicScoring = deterministicScoring;
+    (result as any).detectedDomain = detectedDomain;
 
     const { userId } = await auth();
     if (!userId) {

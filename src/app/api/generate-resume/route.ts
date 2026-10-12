@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateTailoredResumeData, renderResumeToStream } from '@/services/resumeService';
+import { detectJobDomain } from '@/services/aiService';
 import { AnalysisRequestSchema } from '@/schemas/analysisSchema';
 import { AppError } from '@/lib/errors/AppError';
 
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     }
 
     const { resumeText, jobDescription } = validationResult.data;
+    const detectedDomain = detectJobDomain(jobDescription, resumeText);
+    console.log('[GENERATE_RESUME_DOMAIN]:', detectedDomain);
     const resumeData = await generateTailoredResumeData(resumeText, jobDescription);
     const pdfStream = await renderResumeToStream(resumeData);
 

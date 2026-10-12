@@ -6,10 +6,11 @@ import { TailoredResumeSchema, TailoredResumeData } from '../schemas/resumeSchem
 import { AppError } from '../lib/errors/AppError';
 import { ATSResumeDocument } from '../components/pdf/ATSResumeDocument';
 import { calculateDeterministicMatch } from '../lib/scoring';
-import { getApiKey } from './aiService';
+import { getApiKey, detectJobDomain, generateNeutralBullet } from './aiService';
 
 function buildFallbackResumeData(resumeText: string, jobDescription: string): TailoredResumeData {
   const det = calculateDeterministicMatch(resumeText, jobDescription);
+  const domain = detectJobDomain(jobDescription, resumeText);
   const lines = resumeText
     .split(/\r?\n/)
     .map((l) => l.trim())
@@ -23,7 +24,40 @@ function buildFallbackResumeData(resumeText: string, jobDescription: string): Ta
     new Set([...det.matchedKeywords.slice(0, 10), ...det.missingKeywords.slice(0, 6)])
   );
 
-  const topSkills = combinedSkills.length > 0 ? combinedSkills : ['Software Engineering', 'System Architecture', 'TypeScript', 'React', 'Node.js'];
+  const defaultSkills =
+    domain === 'ACCOUNTING' || domain === 'FINANCE'
+      ? ['Financial Reporting', 'General Ledger Reconciliation', 'Accounts Payable & Receivable', 'Statutory Compliance', 'Variance Analysis']
+      : domain === 'OPERATIONS'
+      ? ['Operations Management', 'Process Optimization', 'SLA Governance', 'Vendor Coordination', 'Cross-Functional Execution']
+      : domain === 'MARKETING'
+      ? ['Campaign Management', 'Market Analysis', 'Performance Analytics', 'Content Strategy', 'Stakeholder Engagement']
+      : domain === 'SOFTWARE'
+      ? ['Software Engineering', 'System Architecture', 'TypeScript', 'React', 'Node.js']
+      : ['Project Execution', 'Process Improvement', 'Stakeholder Alignment', 'Data Analysis', 'Quality Assurance'];
+
+  const topSkills = combinedSkills.length > 0 ? combinedSkills : defaultSkills;
+
+  const defaultRoleTitle =
+    domain === 'ACCOUNTING'
+      ? 'Accountant & Financial Analyst'
+      : domain === 'FINANCE'
+      ? 'Financial Analyst'
+      : domain === 'OPERATIONS'
+      ? 'Operations Specialist'
+      : domain === 'MARKETING'
+      ? 'Marketing Specialist'
+      : domain === 'SOFTWARE'
+      ? 'Software Engineer'
+      : 'Professional Specialist';
+
+  const defaultDegree =
+    domain === 'ACCOUNTING' || domain === 'FINANCE'
+      ? 'Bachelor of Commerce (B.Com) in Accounting & Finance'
+      : domain === 'OPERATIONS' || domain === 'MARKETING'
+      ? 'Bachelor of Business Administration (BBA)'
+      : domain === 'SOFTWARE'
+      ? 'Bachelor of Technology in Computer Science'
+      : 'Bachelor Degree';
 
   return {
     fullName,
@@ -32,25 +66,27 @@ function buildFallbackResumeData(resumeText: string, jobDescription: string): Ta
       phone: phoneMatch ? phoneMatch[0] : '+1-555-0100',
       location: 'Remote / Hybrid',
     },
-    summary: `Results-driven engineer with proven expertise in ${topSkills.slice(0, 5).join(', ')}. Adept at designing scalable architectures and delivering measurable production impact aligned with target requirements.`,
+    summary: `Results-driven professional with proven expertise in ${topSkills.slice(0, 5).join(', ')}. Adept at streamlining day-to-day workflows and delivering measurable operational impact aligned with organizational standards.`,
     skills: topSkills,
     experience: [
       {
-        role: 'Software Engineer',
-        company: 'Technology Solutions',
-        location: 'Remote',
+        role: defaultRoleTitle,
+        company: 'Enterprise Solutions Group',
+        location: 'On-site / Hybrid',
         dateRange: '2022 - Present',
         bulletPoints: [
-          `Architected and delivered production features utilizing ${topSkills.slice(0, 3).join(', ')}, improving system performance by 30%.`,
-          `Implemented automated testing and CI/CD workflows incorporating ${topSkills.slice(3, 6).join(', ') || 'modern engineering practices'}, reducing deployment regressions by 25%.`,
-          'Collaborated cross-functionally to optimize data access patterns and API responsiveness under high concurrency.',
+          generateNeutralBullet(topSkills.slice(0, 2).join(' and ') || 'core workflows', domain),
+          generateNeutralBullet(topSkills.slice(2, 4).join(' and ') || 'reporting standards', domain),
+          domain === 'ACCOUNTING' || domain === 'FINANCE'
+            ? 'Reconciled general ledger accounts and verified supporting vouchers, reducing discrepancy resolution time by 20% and maintaining 100% audit readiness.'
+            : 'Collaborated across departments to standardize recurring processes and improve on-time delivery benchmarks by 20%.',
         ],
       },
     ],
     education: [
       {
-        institution: 'University of Technology',
-        degree: 'Bachelor of Technology in Computer Science',
+        institution: 'University',
+        degree: defaultDegree,
         year: '2022',
       },
     ],
@@ -62,6 +98,8 @@ export async function generateTailoredResumeData(
   jobDescription: string
 ): Promise<TailoredResumeData> {
   const runtimeKey = getApiKey();
+  const detectedDomain = detectJobDomain(jobDescription, resumeText);
+
   if (!runtimeKey) {
     return buildFallbackResumeData(resumeText, jobDescription);
   }
@@ -71,7 +109,17 @@ export async function generateTailoredResumeData(
     apiKey: runtimeKey,
   });
 
-  const prompt = `You are a professional technical resume writer and ATS specialist. Extract the candidate's real experience and rewrite bullet points using the Google XYZ formula (Accomplished X, measured by Y, by doing Z). Naturally weave in target keywords from the job description without fabricating experiences or technologies the candidate never used.
+  const prompt = `You are an expert executive resume writer and ATS specialist across all industries (Accounting & Finance, Business Operations, Marketing, HR, and Software Engineering).
+Extract the candidate's real experience and rewrite bullet points using the XYZ formula (Accomplished [X], measured by [Y], by doing [Z]).
+
+CRITICAL DOMAIN RULES (DETECTED DOMAIN: ${detectedDomain}):
+1. Strictly preserve the candidate's actual industry and target role domain from the Job Description.
+2. Use ONLY domain-appropriate terminology and KPIs:
+   - For Accounting / Finance: Use accuracy, reconciliation speed, compliance adherence, audit closure time, ledger balancing, and cost variance (e.g., "Reconciled ledger accounts reducing discrepancy resolution time by 20%").
+   - For Operations / Management: Use SLA adherence, turnaround time, workflow efficiency.
+   - For Software Engineering: Use latency, throughput, uptime, code coverage, CI/CD pipeline speed.
+3. NEVER inject software engineering phrasing ("throughput", "high-throughput service", "latency", "production solutions", "unit tests", "microservices", "CI/CD") into non-software resumes (like Accounting, Finance, Marketing, or Operations).
+4. Naturally weave in relevant target keywords from the job description without fabricating experiences or credentials the candidate never held.
 
 Resume:
 ${resumeText}
@@ -89,7 +137,7 @@ Return ONLY a valid, raw JSON object matching this exact structure (no markdown 
     "linkedIn": "linkedin.com/in/profile",
     "github": "github.com/profile"
   },
-  "summary": "2-3 sentence career summary tailored to the job description.",
+  "summary": "2-3 sentence career summary tailored to the target role and domain.",
   "skills": ["Skill 1", "Skill 2"],
   "experience": [
     {
@@ -97,12 +145,12 @@ Return ONLY a valid, raw JSON object matching this exact structure (no markdown 
       "company": "Company Name",
       "location": "Location",
       "dateRange": "Start - End",
-      "bulletPoints": ["Rewritten high-impact bullet 1", "Rewritten bullet 2"]
+      "bulletPoints": ["Rewritten domain-appropriate XYZ bullet 1", "Rewritten domain-appropriate XYZ bullet 2"]
     }
   ],
   "education": [
     {
-      "institution": "University of Technology",
+      "institution": "Institution Name",
       "degree": "Degree",
       "year": "Graduation Year",
       "highlights": ["Highlight 1"]
@@ -110,9 +158,9 @@ Return ONLY a valid, raw JSON object matching this exact structure (no markdown 
   ],
   "projects": [
     {
-      "name": "Project Name",
-      "technologies": "Tech Stack",
-      "bulletPoints": ["Project achievement 1"]
+      "name": "Project or Initiative Name",
+      "technologies": "Tools / Standards Used",
+      "bulletPoints": ["Measurable achievement 1"]
     }
   ]
 }`;
