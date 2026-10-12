@@ -4,23 +4,23 @@ import React from 'react';
 const STEPS = [
   {
     step: '1',
-    title: 'Raw ATS Text Extractor',
-    subtitle: 'Reads your PDF directly in memory without storing files on disk.',
+    title: 'Two-Column Collapse',
+    subtitle: 'Parsers read text horizontally left-to-right across the page, merging side-by-side columns into mixed, unreadable sentences.',
   },
   {
     step: '2',
-    title: 'Privacy Filter (Contact Redaction)',
-    subtitle: 'Redacts email addresses, phone numbers, and profile links before analysis.',
+    title: 'Missing Font Tables (CID)',
+    subtitle: 'Canva icons and custom fonts frequently decode as unsearchable [cid:127] placeholder characters.',
   },
   {
     step: '3',
-    title: 'Keyword & Role Match',
-    subtitle: 'Computes deterministic keyword overlap and role alignment against the job description.',
+    title: 'Spaced Kerning Traps',
+    subtitle: "Styled section headers like 'E x p e r i e n c e' get parsed as individual letters, causing scanners to miss entire sections.",
   },
   {
     step: '4',
-    title: 'Interview Preparation',
-    subtitle: 'Generates targeted resume bullet rewrites, study tasks, and STAR practice questions.',
+    title: 'The XYZ Impact Standard',
+    subtitle: "Top recruiters prioritize measurable achievements: 'Accomplished [X], measured by [Y], by doing [Z]' over passive task lists.",
   },
 ];
 
@@ -29,10 +29,10 @@ export function AuditProcessRoadmap() {
     <div className="w-full mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 mb-4 pb-3 border-b border-zinc-800">
         <h3 className="text-sm font-semibold text-zinc-100">
-          How Career Copilot Works
+          ATS Screening Fundamentals: Why Resumes Get Filtered
         </h3>
         <span className="text-xs text-zinc-500">
-          In-memory parsing, contact redaction, and keyword matching
+          How enterprise parsers (Workday, Taleo, Greenhouse) actually process your PDF
         </span>
       </div>
 
