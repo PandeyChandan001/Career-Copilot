@@ -29,12 +29,12 @@ export function TailorResumeCTA({ resumeText, jobDescription, onError }: Props) 
         const data = await res.json();
         throw new Error(data.error || 'Failed to generate tailored resume data');
       }
-      
+
       const json = await res.json();
       setTailoredData(json.data);
       setModalOpen(true);
     } catch (err: any) {
-      onError(err.message || 'An error occurred while tailoring');
+      onError(err.message || 'An error occurred while preparing resume');
     } finally {
       setLoading(false);
     }
@@ -76,10 +76,10 @@ export function TailorResumeCTA({ resumeText, jobDescription, onError }: Props) 
       <button
         onClick={handleTailor}
         disabled={loading || !resumeText || !jobDescription}
-        className="flex items-center justify-center gap-2 w-full sm:w-auto bg-gray-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-700 px-4 py-2 rounded-lg text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {loading ? <Loader2 size={18} className="animate-spin" /> : <FileEdit size={18} />}
-        {loading ? 'AI Tailoring...' : 'Interactive Resume Builder'}
+        {loading ? <Loader2 size={14} className="animate-spin" /> : <FileEdit size={14} />}
+        {loading ? 'Preparing Resume...' : 'Edit & Export Resume PDF'}
       </button>
 
       {tailoredData && (

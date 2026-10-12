@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
-import { UploadCloud, Loader2, CheckCircle2 } from 'lucide-react';
+import { Upload, Loader2, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   onParsed: (text: string) => void;
@@ -11,7 +11,7 @@ export function ResumeUploadZone({ onParsed, onError }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback(async (file: File) => {
@@ -56,60 +56,51 @@ export function ResumeUploadZone({ onParsed, onError }: Props) {
   }, [processFile]);
 
   return (
-    <div 
+    <div
       onClick={() => fileInputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
       onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
       onDrop={handleDrop}
-      className={`relative w-full p-8 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all ease-spring duration-500 overflow-hidden cursor-pointer gpu-accel min-h-[200px] group ${isDragging ? 'scale-[1.02] bg-emerald-500/5' : 'hover:scale-[1.01] bg-[var(--panel)]'}`}
+      className={`w-full min-h-[220px] p-6 rounded-xl border border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors ${
+        isDragging
+          ? 'border-emerald-600 bg-emerald-950/20'
+          : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700 hover:bg-zinc-900/50'
+      }`}
     >
-      {/* Dashed Border Layer */}
-      <div className={`absolute inset-0 rounded-2xl border-2 border-dashed transition-colors duration-300 ${isDragging ? 'border-emerald-500/50' : 'border-white/10 group-hover:border-emerald-500/30'}`}></div>
-      
-      {/* Animated gradient border on hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-cyan-500/0 opacity-0 group-hover:opacity-100 group-hover:translate-x-full transition-all duration-1000 -translate-x-full pointer-events-none"></div>
-
-      {/* Hidden input element */}
-      <input 
+      <input
         ref={fileInputRef}
-        type="file" 
-        accept="application/pdf" 
+        type="file"
+        accept="application/pdf"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) {
             processFile(file);
           }
-          // Reset value to allow uploading the same file again if it failed
           e.target.value = '';
         }}
         disabled={isUploading}
       />
 
       {isUploading ? (
-        <div className="flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-300 relative z-20">
-          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-500 relative shadow-inset-glow">
-            <Loader2 size={24} className="animate-spin" />
-            <div className="absolute inset-0 rounded-full ring-2 ring-emerald-500/50 animate-ping"></div>
-          </div>
-          <p className="text-sm font-semibold text-emerald-400">Extracting Text Vector...</p>
+        <div className="flex flex-col items-center gap-2.5 text-zinc-300">
+          <Loader2 size={22} className="animate-spin text-emerald-500" />
+          <p className="text-sm font-medium">Reading PDF in memory...</p>
         </div>
       ) : fileDetails ? (
-        <div className="flex flex-col items-center gap-2 animate-in fade-in zoom-in duration-300 relative z-20">
-          <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-emerald-400 shadow-inset-glow">
-            <CheckCircle2 size={24} />
-          </div>
-          <p className="text-sm font-semibold text-white">{fileDetails.name}</p>
-          <p className="text-xs text-slate-500">{fileDetails.size} • Click to replace</p>
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <CheckCircle2 size={22} className="text-emerald-500 mb-1" />
+          <p className="text-sm font-medium text-zinc-100">{fileDetails.name}</p>
+          <p className="text-xs text-zinc-500">{fileDetails.size} • Click to replace file</p>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-3 text-slate-400 relative z-20 transition-colors group-hover:text-emerald-400 pointer-events-none">
-          <div className="p-4 bg-white/5 rounded-full border border-white/5 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/20 transition-all ease-spring duration-500 shadow-inset-top">
-            <UploadCloud size={28} />
+        <div className="flex flex-col items-center gap-2.5 text-center pointer-events-none">
+          <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400">
+            <Upload size={20} />
           </div>
-          <div className="text-center">
-            <p className="text-sm font-bold text-slate-200">Drop PDF Resume Here</p>
-            <p className="text-xs text-slate-500 mt-1">or click to browse (Max 5MB)</p>
+          <div>
+            <p className="text-sm font-medium text-zinc-200">Drag and drop your PDF resume</p>
+            <p className="text-xs text-zinc-500 mt-1">or click to browse (PDF up to 5MB)</p>
           </div>
         </div>
       )}

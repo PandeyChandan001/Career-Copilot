@@ -1,5 +1,4 @@
 'use client';
-import { useEffect, useState } from 'react';
 
 interface ScoreDetails {
   total: number;
@@ -14,143 +13,94 @@ interface Props {
 }
 
 export function MatchScoreCard({ score, summary }: Props) {
-  const [displayScore, setDisplayScore] = useState(0);
-
-  // Safely extract the scores regardless of if it's an object or a fallback number
   const totalScore = typeof score === 'number' ? score : (score?.total || 70);
   const techScore = typeof score === 'number' ? score : (score?.technicalMatch || 70);
   const expScore = typeof score === 'number' ? score : (score?.experienceRelevance || 70);
   const parseScore = typeof score === 'number' ? 100 : (score?.parseabilityScore || 90);
 
-  useEffect(() => {
-    let startTimestamp: number | null = null;
-    const duration = 1500; // 1.5s
+  const statusLabel =
+    totalScore >= 75
+      ? 'Strong Match'
+      : totalScore >= 50
+      ? 'Moderate Match'
+      : 'Needs Improvement';
 
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      setDisplayScore(Math.floor(easeProgress * totalScore));
-      
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      }
-    };
-    
-    requestAnimationFrame(step);
-  }, [totalScore]);
-
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
-  const [strokeDashoffset, setStrokeDashoffset] = useState(circumference);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setStrokeDashoffset(circumference - (totalScore / 100) * circumference);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [totalScore, circumference]);
-
-  const getColor = (s: number) => {
-    if (s >= 75) return { stroke: '#10B981', glow: 'rgba(16, 185, 129, 0.4)', text: 'text-emerald-400', label: 'High Interview Probability', badge: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' };
-    if (s >= 50) return { stroke: '#F59E0B', glow: 'rgba(245, 158, 11, 0.4)', text: 'text-amber-400', label: 'Needs Optimization', badge: 'bg-amber-500/10 border-amber-500/20 text-amber-400' };
-    return { stroke: '#F43F5E', glow: 'rgba(244, 63, 94, 0.4)', text: 'text-rose-400', label: 'Low Match Probability', badge: 'bg-rose-500/10 border-rose-500/20 text-rose-400' };
-  };
-
-  const colors = getColor(totalScore);
+  const statusClasses =
+    totalScore >= 75
+      ? 'bg-emerald-950/60 border-emerald-800/60 text-emerald-400'
+      : totalScore >= 50
+      ? 'bg-amber-950/60 border-amber-800/60 text-amber-400'
+      : 'bg-rose-950/60 border-rose-800/60 text-rose-400';
 
   return (
-    <div className="bg-[var(--panel)] border border-white/5 shadow-inset-top rounded-2xl p-8 flex flex-col lg:flex-row items-center gap-10 relative overflow-hidden group">
-      {/* Background Ambient Glow */}
-      <div 
-        className="absolute top-1/2 left-32 -translate-y-1/2 w-48 h-48 blur-[100px] rounded-full pointer-events-none transition-colors duration-1000"
-        style={{ backgroundColor: colors.stroke, opacity: 0.15 }}
-      ></div>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 sm:p-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-zinc-100">Match Score</h2>
+            <span className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${statusClasses}`}>
+              {statusLabel}
+            </span>
+          </div>
+          <p className="text-sm text-zinc-400 leading-relaxed max-w-3xl">{summary}</p>
+        </div>
 
-      <div className="relative flex-shrink-0">
-        <svg width="180" height="180" className="transform -rotate-90">
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            className="stroke-white/5"
-            strokeWidth="12"
-            fill="none"
-          />
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            stroke={colors.stroke}
-            strokeWidth="12"
-            fill="none"
-            strokeLinecap="round"
-            className="transition-all duration-[1500ms] ease-smooth"
-            style={{ 
-              strokeDasharray: circumference, 
-              strokeDashoffset,
-              filter: `drop-shadow(0 0 12px ${colors.glow})`
-            }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-5xl font-bold tracking-tighter ${colors.text} font-mono tabular-nums`}>
-            {displayScore}
-          </span>
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1">Match Score</span>
+        <div className="sm:text-right shrink-0">
+          <div className="text-3xl sm:text-4xl font-bold text-zinc-100 tabular-nums">
+            {totalScore}<span className="text-lg font-normal text-zinc-500">/100</span>
+          </div>
+          <div className="text-xs text-zinc-500 mt-0.5">Keyword &amp; Role Match</div>
         </div>
       </div>
 
-      <div className="flex-1 w-full space-y-6 relative z-10 text-center lg:text-left">
+      {/* Overall Progress Bar */}
+      <div className="space-y-2">
+        <div className="h-2 w-full bg-zinc-950 border border-zinc-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(100, Math.max(0, totalScore))}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Three Concrete Score Components */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
         <div className="space-y-2">
-          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-3">
-            <h3 className="text-2xl font-bold tracking-tight text-white">Analysis Complete</h3>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${colors.badge} shadow-inset-top`}>
-              {colors.label}
-            </span>
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-medium text-zinc-300">Keyword Overlap (50%)</span>
+            <span className="text-zinc-100 font-semibold tabular-nums">{techScore}%</span>
           </div>
-          <p className="text-slate-400 leading-relaxed text-sm max-w-2xl">{summary}</p>
+          <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, techScore))}%` }}
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-white/5">
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold items-center">
-              <span className="text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                Technical / Keyword Match
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono font-normal lowercase">deterministic</span>
-              </span>
-              <span className="text-white font-mono">{techScore}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-cyan-400 rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${techScore}%` }}
-              ></div>
-            </div>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-medium text-zinc-300">Experience Relevance (30%)</span>
+            <span className="text-zinc-100 font-semibold tabular-nums">{expScore}%</span>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold">
-              <span className="text-slate-400 uppercase tracking-wider">Experience</span>
-              <span className="text-white">{expScore}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-purple-400 rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${expScore}%` }}
-              ></div>
-            </div>
+          <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, expScore))}%` }}
+            />
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-semibold">
-              <span className="text-slate-400 uppercase tracking-wider">ATS Parseability</span>
-              <span className="text-white">{parseScore}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-emerald-400 rounded-full transition-all duration-1000 ease-out" 
-                style={{ width: `${parseScore}%` }}
-              ></div>
-            </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-medium text-zinc-300">Parseability (20%)</span>
+            <span className="text-zinc-100 font-semibold tabular-nums">{parseScore}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, parseScore))}%` }}
+            />
           </div>
         </div>
       </div>

@@ -1,5 +1,4 @@
 'use client';
-import { CheckCircle2, XCircle, Copy } from 'lucide-react';
 import { useState } from 'react';
 
 interface KeywordItem {
@@ -17,7 +16,7 @@ interface KeywordMatrixProps {
   matchedKeywords?: (string | KeywordItem)[];
 }
 
-export function KeywordMatrix({ 
+export function KeywordMatrix({
   keywords = [],
   missingKeywords: missingProp = [],
   matchedKeywords: matchedProp = [],
@@ -28,13 +27,13 @@ export function KeywordMatrix({
 
   const missingKeywords: KeywordItem[] = safeKeywords.length > 0
     ? safeKeywords.filter(k => k?.isMissing)
-    : (Array.isArray(missingProp) ? missingProp : []).map(k => 
+    : (Array.isArray(missingProp) ? missingProp : []).map(k =>
         typeof k === 'string' ? { keyword: k, isMissing: true } : k
       );
 
   const matchedKeywords: KeywordItem[] = safeKeywords.length > 0
     ? safeKeywords.filter(k => !k?.isMissing)
-    : (Array.isArray(matchedProp) ? matchedProp : []).map(k => 
+    : (Array.isArray(matchedProp) ? matchedProp : []).map(k =>
         typeof k === 'string' ? { keyword: k, isMissing: false } : k
       );
 
@@ -47,58 +46,77 @@ export function KeywordMatrix({
   if (missingKeywords.length === 0 && matchedKeywords.length === 0) return null;
 
   return (
-    <div className="bg-[var(--panel)] border border-white/5 shadow-inset-top rounded-2xl p-6 md:p-8 space-y-8">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6">
       <div>
-        <h3 className="text-xl font-bold tracking-tight text-white mb-2">Keyword Matrix</h3>
-        <p className="text-sm text-slate-400">Optimize your resume for ATS parsers by integrating these critical keywords into your experience.</p>
+        <h3 className="text-base font-semibold text-zinc-100">Keyword &amp; Role Match</h3>
+        <p className="text-xs text-zinc-400 mt-1">
+          Comparison of terms found in your resume against terms in the target job description.
+        </p>
       </div>
 
-      {missingKeywords.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm uppercase tracking-widest border-b border-rose-500/10 pb-2">
-            <XCircle size={16} /> Missing Keywords
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {missingKeywords.map((kw, i) => (
-              <div key={i} className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4 flex flex-col gap-3 group hover:bg-rose-500/10 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-bold text-white block">{kw.keyword}</span>
-                    <span className="text-xs font-medium text-rose-300">{kw.category} • {kw.isRequired ? 'Required' : 'Preferred'}</span>
-                  </div>
-                </div>
-                {kw.suggestedBullet && (
-                  <div className="mt-auto">
-                    <p className="text-xs text-slate-400 italic mb-2 line-clamp-2 leading-relaxed">
-                      &ldquo;{kw.suggestedBullet}&rdquo;
-                    </p>
-                    <button 
-                      onClick={() => copyToClipboard(kw.suggestedBullet!, `missing-${i}`)}
-                      className="text-xs font-semibold flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
-                    >
-                      <Copy size={12} /> {copiedId === `missing-${i}` ? 'Copied!' : 'Copy Suggestion'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Matched in Resume ({matchedKeywords.length})
+          </h4>
+          {matchedKeywords.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {matchedKeywords.map((kw, i) => (
+                <span
+                  key={i}
+                  className="px-2.5 py-1 bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-medium rounded-md"
+                >
+                  {kw.keyword}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-zinc-500">No direct keyword matches found.</p>
+          )}
         </div>
-      )}
 
-      {matchedKeywords.length > 0 && (
-        <div className="space-y-4 pt-4">
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm uppercase tracking-widest border-b border-emerald-500/10 pb-2">
-            <CheckCircle2 size={16} /> Matched Keywords
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {matchedKeywords.map((kw, i) => (
-              <span 
-                key={i} 
-                className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium rounded-lg"
-              >
-                {kw.keyword}
-              </span>
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Missing from Job Description ({missingKeywords.length})
+          </h4>
+          {missingKeywords.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {missingKeywords.map((kw, i) => (
+                <span
+                  key={i}
+                  className="px-2.5 py-1 bg-rose-950/40 border border-rose-900/60 text-rose-300 text-xs font-medium rounded-md"
+                >
+                  {kw.keyword}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-emerald-400">All target keywords are present in your resume.</p>
+          )}
+        </div>
+      </div>
+
+      {missingKeywords.some(k => k.suggestedBullet) && (
+        <div className="pt-4 border-t border-zinc-800 space-y-3">
+          <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Suggested Bullet Additions
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {missingKeywords.filter(k => k.suggestedBullet).map((kw, i) => (
+              <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-lg p-3.5 flex flex-col justify-between gap-2">
+                <div>
+                  <span className="text-xs font-semibold text-zinc-200">{kw.keyword}</span>
+                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    &ldquo;{kw.suggestedBullet}&rdquo;
+                  </p>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(kw.suggestedBullet!, `missing-${i}`)}
+                  className="self-start text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  {copiedId === `missing-${i}` ? 'Copied' : 'Copy bullet'}
+                </button>
+              </div>
             ))}
           </div>
         </div>

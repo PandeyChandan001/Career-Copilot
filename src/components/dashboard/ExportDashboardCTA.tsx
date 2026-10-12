@@ -24,23 +24,21 @@ export function ExportDashboardCTA() {
             margin: 0;
             padding: 0;
           }
-          /* Hide interactive elements in print */
           button, .no-print {
             display: none !important;
           }
-          /* Ensure backgrounds print */
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
         }
       `}} />
-      <button 
+      <button
         onClick={handlePrint}
-        className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 rounded-xl font-bold transition-all active:scale-95 shadow-[0_0_15px_-3px_rgba(16,185,129,0.3)]"
+        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-xs font-medium transition-colors"
       >
-        <Download size={16} />
-        <span className="text-sm">Export Report</span>
+        <Download size={14} />
+        <span>Export PDF</span>
       </button>
     </>
   );

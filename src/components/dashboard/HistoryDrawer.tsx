@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { X, Clock, Loader2 } from 'lucide-react';
 import { PrepAnalysisResult } from '@/schemas/analysisSchema';
 
-interface Record {
+interface RecordItem {
   id: string;
   createdAt: string;
   matchScore: number;
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function HistoryDrawer({ isOpen, onClose, onRestore }: Props) {
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -62,28 +62,54 @@ export function HistoryDrawer({ isOpen, onClose, onRestore }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-bold flex items-center gap-2"><Clock size={18} /> Analysis History</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded text-gray-500"><X size={20} /></button>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-zinc-950 border-l border-zinc-800 h-full flex flex-col text-zinc-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-900">
+          <h2 className="text-sm font-semibold flex items-center gap-2 text-zinc-100">
+            <Clock size={16} className="text-zinc-400" /> Past Analyses
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"
+          >
+            <X size={18} />
+          </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-400" /></div>
+            <div className="flex justify-center p-8">
+              <Loader2 className="animate-spin text-zinc-500" size={20} />
+            </div>
           ) : records.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center mt-4">No history found.</p>
+            <p className="text-xs text-zinc-500 text-center mt-6">No saved analyses found.</p>
           ) : (
-            (records ?? []).map(rec => (
-              <div key={rec.id} className="border rounded-lg p-3 hover:border-blue-300 cursor-pointer transition-colors" onClick={() => handleRestore(rec.id)}>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="text-xs text-gray-500">{new Date(rec.createdAt).toLocaleDateString()}</div>
-                  <div className={`text-xs font-bold px-2 py-0.5 rounded-full ${rec.matchScore >= 75 ? 'bg-emerald-100 text-emerald-700' : rec.matchScore >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
-                    Score: {rec.matchScore}
-                  </div>
+            (records ?? []).map((rec) => (
+              <div
+                key={rec.id}
+                onClick={() => handleRestore(rec.id)}
+                className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-lg p-3.5 cursor-pointer transition-colors"
+              >
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs text-zinc-500">
+                    {new Date(rec.createdAt).toLocaleDateString()}
+                  </span>
+                  <span
+                    className={`text-xs font-medium px-2 py-0.5 rounded border ${
+                      rec.matchScore >= 75
+                        ? 'bg-emerald-950/60 border-emerald-800/60 text-emerald-400'
+                        : rec.matchScore >= 50
+                        ? 'bg-amber-950/60 border-amber-800/60 text-amber-400'
+                        : 'bg-rose-950/60 border-rose-800/60 text-rose-400'
+                    }`}
+                  >
+                    {rec.matchScore}/100
+                  </span>
                 </div>
-                <p className="text-sm text-gray-700 line-clamp-3">{rec.summary}</p>
-                {loadingId === rec.id && <Loader2 size={16} className="animate-spin text-blue-500 mt-2" />}
+                <p className="text-xs text-zinc-300 line-clamp-3 leading-relaxed">{rec.summary}</p>
+                {loadingId === rec.id && (
+                  <Loader2 size={14} className="animate-spin text-emerald-500 mt-2" />
+                )}
               </div>
             ))
           )}
